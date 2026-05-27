@@ -16,6 +16,7 @@
         <result property="departmentName" column="department_name"/>
         <result property="customerName" column="customer_name"/>
         <result property="projectName" column="project_name"/>
+        <result property="securityLevel" column="security_level"/>
         <result property="expectedOrderPeriod" column="expected_order_period"/>
         <result property="expectedDeliveryPeriod" column="expected_delivery_period"/>
         <result property="projectAmount" column="project_amount"/>
@@ -33,6 +34,7 @@
         <result property="customerName" column="customer_name"/>
         <result property="projectName" column="project_name"/>
         <result property="ownerName" column="owner_name"/>
+        <result property="securityLevel" column="security_level"/>
         <result property="expectedOrderPeriod" column="expected_order_period"/>
         <result property="expectedDeliveryPeriod" column="expected_delivery_period"/>
         <result property="projectAmount" column="project_amount"/>
@@ -49,6 +51,44 @@
         <result property="content" column="content"/>
     </resultMap>
 
+    <resultMap id="OpportunityExecutiveCommentItemMap" type="com.kinoton.sales.opportunity.dto.OpportunityExecutiveCommentItemDto">
+        <id property="opportunityExecutiveCommentId" column="opportunity_executive_comment_id"/>
+        <result property="opportunityId" column="opportunity_id"/>
+        <result property="content" column="content"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdByName" column="created_by_name"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <sql id="DepartmentAccessPredicate">
+        <choose>
+            <when test="allDepartments">
+            </when>
+            <when test="departmentCodes != null and departmentCodes.size() > 0">
+                AND d.code IN
+                <foreach collection="departmentCodes" item="accessDepartmentCode" open="(" separator="," close=")">
+                    #{accessDepartmentCode}
+                </foreach>
+            </when>
+            <otherwise>
+                AND 1 = 0
+            </otherwise>
+        </choose>
+    </sql>
+
+    <sql id="ConfidentialAccessPredicate">
+        AND (
+            o.security_level = 'GENERAL'
+            OR #{allConfidential} = TRUE
+            OR EXISTS (
+                SELECT 1
+                FROM opportunity_view_permissions ovp
+                WHERE ovp.opportunity_id = o.opportunity_id
+                  AND ovp.user_id = #{userId}
+            )
+        )
+    </sql>
+
     <select id="selectDepartmentIdByCode" parameterType="string" resultType="long">
         -- 사업본부 코드로 활성 부서를 조회한다.
         SELECT
@@ -58,29 +98,25 @@
           AND d.is_active = TRUE
     </select>
 
-    <select id="selectProbabilityStageByDepartmentAndProbability"
-            parameterType="com.kinoton.sales.opportunity.dto.ProbabilityStageLookupCondition"
-            resultMap="ProbabilityStageSimpleMap">
-        -- 사업본부와 확률 기준으로 활성 수주확률 단계를 조회한다.
+    <select id="selectProbabilityStageByProbability" parameterType="int" resultMap="ProbabilityStageSimpleMap">
+        -- 확률 기준으로 전사 공통 활성 수주확률 단계를 조회한다.
         SELECT
             ps.probability_stage_id,
             ps.probability,
             ps.name
         FROM probability_stages ps
-        WHERE ps.department_id = #{departmentId}
-          AND ps.probability = #{probability}
+        WHERE ps.probability = #{probability}
           AND ps.is_active = TRUE
     </select>
 
-    <select id="selectProbabilityStageListByDepartmentId" parameterType="long" resultMap="ProbabilityStageSimpleMap">
-        -- 사업본부별 활성 수주확률 단계 목록을 조회한다.
+    <select id="selectProbabilityStageList" resultMap="ProbabilityStageSimpleMap">
+        -- 전사 공통 활성 수주확률 단계 목록을 조회한다.
         SELECT
             ps.probability_stage_id,
             ps.probability,
             ps.name
         FROM probability_stages ps
-        WHERE ps.department_id = #{departmentId}
-          AND ps.is_active = TRUE
+        WHERE ps.is_active = TRUE
         ORDER BY ps.display_order, ps.probability
     </select>
 
@@ -95,6 +131,8 @@
             customer_name,
             project_name,
             owner_name,
+            owner_employee_id,
+            security_level,
             expected_order_period,
             expected_delivery_period,
             project_amount,
@@ -108,6 +146,8 @@
             #{customerName},
             #{projectName},
             #{ownerName},
+            #{ownerEmployeeId},
+            #{securityLevel},
             #{expectedOrderPeriod},
             #{expectedDeliveryPeriod},
             #{projectAmount},
@@ -118,12 +158,28 @@
         )
     </insert>
 
+    <insert id="insertOpportunityViewPermission"
+            parameterType="com.kinoton.sales.opportunity.dto.OpportunityViewPermissionCommandDto">
+        -- 보안 프로젝트 열람 허용 사용자를 등록한다.
+        INSERT INTO opportunity_view_permissions (
+            opportunity_id,
+            user_id,
+            created_by
+        )
+        VALUES (
+            #{opportunityId},
+            #{userId},
+            #{createdBy}
+        )
+        ON CONFLICT (opportunity_id, user_id) DO NOTHING
+    </insert>
+
     <insert id="insertOpportunityProgress"
             parameterType="com.kinoton.sales.opportunity.dto.OpportunityProgressCreateCommandDto"
             useGeneratedKeys="true"
             keyProperty="opportunityProgressId"
             keyColumn="opportunity_progress_id">
-        -- 영업 사이트 등록 시 초기 진행 기록을 생성한다.
+        -- 영업 사이트 진행 기록을 생성한다.
         INSERT INTO opportunity_progress (
             opportunity_id,
             progress_date,
@@ -135,6 +191,24 @@
             #{opportunityId},
             #{progressDate},
             #{probabilityStageId},
+            #{content},
+            #{createdBy}
+        )
+    </insert>
+
+    <insert id="insertOpportunityExecutiveComment"
+            parameterType="com.kinoton.sales.opportunity.dto.OpportunityExecutiveCommentCreateCommandDto"
+            useGeneratedKeys="true"
+            keyProperty="opportunityExecutiveCommentId"
+            keyColumn="opportunity_executive_comment_id">
+        -- 임원 코멘트를 영업 사이트에 등록한다.
+        INSERT INTO opportunity_executive_comments (
+            opportunity_id,
+            content,
+            created_by
+        )
+        VALUES (
+            #{opportunityId},
             #{content},
             #{createdBy}
         )
@@ -161,6 +235,7 @@
             d.name AS department_name,
             o.customer_name,
             o.project_name,
+            o.security_level,
             o.expected_order_period,
             o.expected_delivery_period,
             o.project_amount,
@@ -174,19 +249,8 @@
         INNER JOIN probability_stages ps
             ON ps.probability_stage_id = o.probability_stage_id
         <where>
-            <choose>
-                <when test="allDepartments">
-                </when>
-                <when test="departmentCodes != null and departmentCodes.size() > 0">
-                    AND d.code IN
-                    <foreach collection="departmentCodes" item="accessDepartmentCode" open="(" separator="," close=")">
-                        #{accessDepartmentCode}
-                    </foreach>
-                </when>
-                <otherwise>
-                    AND 1 = 0
-                </otherwise>
-            </choose>
+            <include refid="DepartmentAccessPredicate"/>
+            <include refid="ConfidentialAccessPredicate"/>
             <if test="departmentCode != null and departmentCode != ''">
                 AND d.code = #{departmentCode}
             </if>
@@ -197,8 +261,10 @@
         ORDER BY o.created_at DESC, o.opportunity_id DESC
     </select>
 
-    <select id="selectOpportunityDetails" parameterType="long" resultMap="OpportunityDetailsMap">
-        -- 영업 사이트 상세 정보를 조회한다.
+    <select id="selectOpportunityDetailsByAccess"
+            parameterType="com.kinoton.sales.opportunity.dto.OpportunityAccessCondition"
+            resultMap="OpportunityDetailsMap">
+        -- 권한 범위 안에서 영업 사이트 상세 정보를 조회한다.
         SELECT
             o.opportunity_id,
             d.department_id,
@@ -207,6 +273,7 @@
             o.customer_name,
             o.project_name,
             o.owner_name,
+            o.security_level,
             o.expected_order_period,
             o.expected_delivery_period,
             o.project_amount,
@@ -219,10 +286,12 @@
         INNER JOIN probability_stages ps
             ON ps.probability_stage_id = o.probability_stage_id
         WHERE o.opportunity_id = #{opportunityId}
+        <include refid="DepartmentAccessPredicate"/>
+        <include refid="ConfidentialAccessPredicate"/>
     </select>
 
     <select id="selectOpportunityProgressList" parameterType="long" resultMap="OpportunityProgressItemMap">
-        -- 영업 사이트 날짜별 진행 기록을 조회한다.
+        -- 영업 사이트 일자별 진행 기록을 조회한다.
         SELECT
             op.opportunity_progress_id,
             op.progress_date,
@@ -234,5 +303,34 @@
             ON ps.probability_stage_id = op.probability_stage_id
         WHERE op.opportunity_id = #{opportunityId}
         ORDER BY op.progress_date DESC, op.opportunity_progress_id DESC
+    </select>
+
+    <select id="selectOpportunityProgressCount"
+            parameterType="com.kinoton.sales.opportunity.dto.OpportunityProgressLookupCondition"
+            resultType="int">
+        -- ?곸뾽 ?ъ씠?몄뿉 ?띿븳 吏꾪뻾 湲곕줉 ?щ?瑜?寃利앺븳??.
+        SELECT
+            COUNT(1)
+        FROM opportunity_progress op
+        WHERE op.opportunity_id = #{opportunityId}
+          AND op.opportunity_progress_id = #{opportunityProgressId}
+    </select>
+
+    <select id="selectOpportunityExecutiveCommentList"
+            parameterType="long"
+            resultMap="OpportunityExecutiveCommentItemMap">
+        -- 영업 사이트에 등록된 임원 코멘트 목록을 조회한다.
+        SELECT
+            oec.opportunity_executive_comment_id,
+            oec.opportunity_id,
+            oec.content,
+            oec.created_by,
+            u.name AS created_by_name,
+            oec.created_at
+        FROM opportunity_executive_comments oec
+        LEFT JOIN users u
+            ON u.user_id = oec.created_by
+        WHERE oec.opportunity_id = #{opportunityId}
+        ORDER BY oec.created_at DESC, oec.opportunity_executive_comment_id DESC
     </select>
 </mapper>

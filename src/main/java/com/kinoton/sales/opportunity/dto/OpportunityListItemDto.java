@@ -9,6 +9,7 @@ public class OpportunityListItemDto {
     private String departmentName;
     private String customerName;
     private String projectName;
+    private String securityLevel;
     private String expectedOrderPeriod;
     private String expectedDeliveryPeriod;
     private BigDecimal projectAmount;
@@ -55,6 +56,22 @@ public class OpportunityListItemDto {
 
     public void setProjectName(String projectName) {
         this.projectName = projectName;
+    }
+
+    public String getSecurityLevel() {
+        return securityLevel;
+    }
+
+    public void setSecurityLevel(String securityLevel) {
+        this.securityLevel = securityLevel;
+    }
+
+    public boolean isConfidential() {
+        return "CONFIDENTIAL".equals(securityLevel);
+    }
+
+    public String getSecurityLevelName() {
+        return isConfidential() ? "보안" : "일반";
     }
 
     public String getExpectedOrderPeriod() {

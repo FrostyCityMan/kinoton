@@ -12,6 +12,7 @@ import com.kinoton.sales.user.dto.UserDepartmentOptionDto;
 import com.kinoton.sales.user.dto.UserDepartmentPermissionCommandDto;
 import com.kinoton.sales.user.dto.UserEditResponse;
 import com.kinoton.sales.user.dto.UserManagementResponse;
+import com.kinoton.sales.user.dto.UserOptionDto;
 import com.kinoton.sales.user.dto.UserRoleCommandDto;
 import com.kinoton.sales.user.dto.UserUpdateCommandDto;
 import com.kinoton.sales.user.dto.UserUpdateRequest;
@@ -57,6 +58,21 @@ public class UserManagementServiceImpl implements UserManagementService {
             userManagementDao.selectRoleOptionList(),
             userManagementDao.selectDepartmentOptionList()
         );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserOptionDto> selectActiveUserOptionList() {
+        return userManagementDao.selectActiveUserOptionList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Long> selectActiveUserIdList(List<Long> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            return List.of();
+        }
+        return userManagementDao.selectActiveUserIdList(userIds);
     }
 
     @Override

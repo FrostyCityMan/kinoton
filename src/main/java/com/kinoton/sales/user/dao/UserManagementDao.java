@@ -7,6 +7,7 @@ import com.kinoton.sales.user.dto.RoleOptionDto;
 import com.kinoton.sales.user.dto.UserCreateCommandDto;
 import com.kinoton.sales.user.dto.UserDepartmentOptionDto;
 import com.kinoton.sales.user.dto.UserDepartmentPermissionCommandDto;
+import com.kinoton.sales.user.dto.UserOptionDto;
 import com.kinoton.sales.user.dto.UserRoleCommandDto;
 import com.kinoton.sales.user.dto.UserUpdateCommandDto;
 import org.apache.ibatis.annotations.Mapper;
@@ -17,6 +18,10 @@ import java.util.List;
 public interface UserManagementDao {
 
     List<ManagedUserListItemDto> selectManagedUserList();
+
+    List<UserOptionDto> selectActiveUserOptionList();
+
+    List<Long> selectActiveUserIdList(List<Long> userIds);
 
     ManagedUserDetailsDto selectManagedUserDetails(Long userId);
 

@@ -15,6 +15,7 @@
         <result property="departmentName" column="department_name"/>
         <result property="customerName" column="customer_name"/>
         <result property="projectName" column="project_name"/>
+        <result property="securityLevel" column="security_level"/>
         <result property="ownerName" column="owner_name"/>
         <result property="expectedOrderPeriod" column="expected_order_period"/>
         <result property="expectedDeliveryPeriod" column="expected_delivery_period"/>
@@ -24,6 +25,63 @@
         <result property="probabilityStageName" column="probability_stage_name"/>
         <result property="createdAt" column="created_at"/>
     </resultMap>
+
+    <resultMap id="OpportunityReportDepartmentSummaryMap"
+               type="com.kinoton.sales.report.dto.OpportunityReportDepartmentSummaryDto">
+        <id property="departmentCode" column="department_code"/>
+        <result property="departmentName" column="department_name"/>
+        <result property="totalCount" column="total_count"/>
+        <result property="totalProjectAmount" column="total_project_amount"/>
+        <result property="confirmedRevenueAmount" column="confirmed_revenue_amount"/>
+        <result property="expectedRevenueAmount" column="expected_revenue_amount"/>
+        <result property="holdLostCount" column="hold_lost_count"/>
+        <result property="holdLostAmount" column="hold_lost_amount"/>
+    </resultMap>
+
+    <sql id="ReportAccessPredicate">
+        <choose>
+            <when test="allDepartments">
+            </when>
+            <when test="departmentCodes != null and departmentCodes.size() > 0">
+                AND d.code IN
+                <foreach collection="departmentCodes" item="accessDepartmentCode" open="(" separator="," close=")">
+                    #{accessDepartmentCode}
+                </foreach>
+            </when>
+            <otherwise>
+                AND 1 = 0
+            </otherwise>
+        </choose>
+        AND (
+            o.security_level = 'GENERAL'
+            OR #{allConfidential} = TRUE
+            OR EXISTS (
+                SELECT 1
+                FROM opportunity_view_permissions ovp
+                WHERE ovp.opportunity_id = o.opportunity_id
+                  AND ovp.user_id = #{userId}
+            )
+        )
+    </sql>
+
+    <sql id="ReportSearchPredicate">
+        <include refid="ReportAccessPredicate"/>
+        <if test="departmentCode != null and departmentCode != ''">
+            AND d.code = #{departmentCode}
+        </if>
+        <if test="status != null and status != ''">
+            AND o.status = #{status}
+        </if>
+        <if test="periodStartDate != null and periodEndDate != null">
+            AND EXISTS (
+                SELECT 1
+                FROM opportunity_progress op_period
+                WHERE op_period.opportunity_id = o.opportunity_id
+                  AND op_period.progress_date &gt;= #{periodStartDate}
+                  AND op_period.progress_date &lt; #{periodEndDate}
+            )
+        </if>
+    </sql>
 
     <select id="selectReportDepartmentOptionList"
             parameterType="com.kinoton.sales.security.dto.DepartmentAccessScope"
@@ -50,6 +108,56 @@
         ORDER BY d.display_order, d.department_id
     </select>
 
+    <select id="selectOpportunityReportDepartmentSummaryList"
+            parameterType="com.kinoton.sales.report.dto.ReportSearchCondition"
+            resultMap="OpportunityReportDepartmentSummaryMap">
+        -- 영업 보고서 사업본부별 집계 데이터를 검색 조건과 권한 범위에 따라 조회한다.
+        SELECT
+            d.code AS department_code,
+            d.name AS department_name,
+            COUNT(o.opportunity_id) AS total_count,
+            COALESCE(SUM(
+                CASE
+                    WHEN o.status IN ('HOLD', 'LOST') THEN 0
+                    ELSE o.project_amount
+                END
+            ), 0) AS total_project_amount,
+            COALESCE(SUM(
+                CASE
+                    WHEN o.status NOT IN ('HOLD', 'LOST') AND ps.probability &gt;= 90 THEN o.project_amount
+                    ELSE 0
+                END
+            ), 0) AS confirmed_revenue_amount,
+            COALESCE(SUM(
+                CASE
+                    WHEN o.status NOT IN ('HOLD', 'LOST') AND ps.probability &lt; 90 THEN o.project_amount
+                    ELSE 0
+                END
+            ), 0) AS expected_revenue_amount,
+            COUNT(
+                CASE
+                    WHEN o.status IN ('HOLD', 'LOST') THEN 1
+                    ELSE NULL
+                END
+            ) AS hold_lost_count,
+            COALESCE(SUM(
+                CASE
+                    WHEN o.status IN ('HOLD', 'LOST') THEN o.project_amount
+                    ELSE 0
+                END
+            ), 0) AS hold_lost_amount
+        FROM opportunities o
+        INNER JOIN departments d
+            ON d.department_id = o.department_id
+        INNER JOIN probability_stages ps
+            ON ps.probability_stage_id = o.probability_stage_id
+        <where>
+            <include refid="ReportSearchPredicate"/>
+        </where>
+        GROUP BY d.code, d.name, d.display_order
+        ORDER BY d.display_order, d.code
+    </select>
+
     <select id="selectOpportunityReportItemList"
             parameterType="com.kinoton.sales.report.dto.ReportSearchCondition"
             resultMap="OpportunityReportItemMap">
@@ -60,6 +168,7 @@
             d.name AS department_name,
             o.customer_name,
             o.project_name,
+            o.security_level,
             o.owner_name,
             o.expected_order_period,
             o.expected_delivery_period,
@@ -74,25 +183,7 @@
         INNER JOIN probability_stages ps
             ON ps.probability_stage_id = o.probability_stage_id
         <where>
-            <choose>
-                <when test="allDepartments">
-                </when>
-                <when test="departmentCodes != null and departmentCodes.size() > 0">
-                    AND d.code IN
-                    <foreach collection="departmentCodes" item="accessDepartmentCode" open="(" separator="," close=")">
-                        #{accessDepartmentCode}
-                    </foreach>
-                </when>
-                <otherwise>
-                    AND 1 = 0
-                </otherwise>
-            </choose>
-            <if test="departmentCode != null and departmentCode != ''">
-                AND d.code = #{departmentCode}
-            </if>
-            <if test="status != null and status != ''">
-                AND o.status = #{status}
-            </if>
+            <include refid="ReportSearchPredicate"/>
         </where>
         ORDER BY d.display_order, o.created_at DESC, o.opportunity_id DESC
     </select>

@@ -37,8 +37,20 @@ public class AuditLogServiceImpl implements AuditLogService {
         Object beforeData,
         Object afterData
     ) {
-        HttpServletRequest request = selectCurrentRequest();
+        insertAuditLog(actorUserId, targetType, targetId, action, beforeData, afterData, selectCurrentRequest());
+    }
 
+    @Override
+    @Transactional
+    public void insertAuditLog(
+        Long actorUserId,
+        String targetType,
+        Long targetId,
+        String action,
+        Object beforeData,
+        Object afterData,
+        HttpServletRequest request
+    ) {
         AuditLogCreateCommandDto command = new AuditLogCreateCommandDto();
         command.setActorUserId(actorUserId);
         command.setTargetType(targetType);

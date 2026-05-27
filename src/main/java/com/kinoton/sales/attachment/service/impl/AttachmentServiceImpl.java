@@ -11,8 +11,12 @@ import com.kinoton.sales.attachment.dto.AttachmentLookupCondition;
 import com.kinoton.sales.attachment.service.AttachmentService;
 import com.kinoton.sales.common.exception.BusinessException;
 import com.kinoton.sales.opportunity.dao.OpportunityDao;
+import com.kinoton.sales.opportunity.dto.OpportunityAccessCondition;
 import com.kinoton.sales.opportunity.dto.OpportunityDetailsDto;
+import com.kinoton.sales.opportunity.dto.OpportunityProgressLookupCondition;
 import com.kinoton.sales.security.DepartmentAccessService;
+import com.kinoton.sales.security.KinotonUserDetails;
+import com.kinoton.sales.security.dto.DepartmentAccessScope;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -74,8 +78,7 @@ public class AttachmentServiceImpl implements AttachmentService {
     @Override
     @Transactional(readOnly = true)
     public List<AttachmentItemDto> selectAttachmentList(Long opportunityId, Authentication authentication) {
-        OpportunityDetailsDto opportunity = selectExistingOpportunity(opportunityId);
-        departmentAccessService.validateReadableDepartment(opportunity.getDepartmentCode(), authentication);
+        selectExistingOpportunityByAccess(opportunityId, authentication);
         return attachmentDao.selectAttachmentListByOpportunityId(opportunityId);
     }
 
@@ -83,12 +86,14 @@ public class AttachmentServiceImpl implements AttachmentService {
     @Transactional
     public AttachmentCreateResponse insertAttachment(
         Long opportunityId,
+        Long opportunityProgressId,
         MultipartFile file,
         Long uploadedBy,
         Authentication authentication
     ) {
-        OpportunityDetailsDto opportunity = selectExistingOpportunity(opportunityId);
+        OpportunityDetailsDto opportunity = selectExistingOpportunityByAccess(opportunityId, authentication);
         departmentAccessService.validateWritableDepartment(opportunity.getDepartmentCode(), authentication);
+        validateOpportunityProgress(opportunityId, opportunityProgressId);
         validateFile(file);
 
         String originalFilename = selectOriginalFilename(file);
@@ -105,6 +110,7 @@ public class AttachmentServiceImpl implements AttachmentService {
 
             AttachmentCreateCommandDto command = new AttachmentCreateCommandDto();
             command.setOpportunityId(opportunityId);
+            command.setOpportunityProgressId(opportunityProgressId);
             command.setOriginalFilename(originalFilename);
             command.setStoredFilename(storedFilename);
             command.setContentType(file.getContentType());
@@ -131,14 +137,13 @@ public class AttachmentServiceImpl implements AttachmentService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public AttachmentDownloadResponse selectAttachmentDownload(
         Long opportunityId,
         Long attachmentId,
         Authentication authentication
     ) {
-        OpportunityDetailsDto opportunity = selectExistingOpportunity(opportunityId);
-        departmentAccessService.validateReadableDepartment(opportunity.getDepartmentCode(), authentication);
+        OpportunityDetailsDto opportunity = selectExistingOpportunityByAccess(opportunityId, authentication);
         AttachmentDetailsDto attachment = selectExistingAttachment(opportunityId, attachmentId);
         Path filePath = selectStoragePath(attachment.getStoragePath());
         if (!Files.exists(filePath) || !Files.isRegularFile(filePath)) {
@@ -147,6 +152,14 @@ public class AttachmentServiceImpl implements AttachmentService {
 
         try {
             Resource resource = new UrlResource(filePath.toUri());
+            auditLogService.insertAuditLog(
+                selectAuthenticatedUserId(authentication),
+                "ATTACHMENT",
+                attachmentId,
+                "DOWNLOAD_ATTACHMENT",
+                null,
+                selectAttachmentAuditData(attachment, opportunity)
+            );
             return new AttachmentDownloadResponse(
                 attachment.getOriginalFilename(),
                 attachment.getContentType(),
@@ -161,7 +174,7 @@ public class AttachmentServiceImpl implements AttachmentService {
     @Override
     @Transactional
     public void deleteAttachment(Long opportunityId, Long attachmentId, Long deletedBy, Authentication authentication) {
-        OpportunityDetailsDto opportunity = selectExistingOpportunity(opportunityId);
+        OpportunityDetailsDto opportunity = selectExistingOpportunityByAccess(opportunityId, authentication);
         departmentAccessService.validateWritableDepartment(opportunity.getDepartmentCode(), authentication);
         AttachmentDetailsDto attachment = selectExistingAttachment(opportunityId, attachmentId);
         attachmentDao.deleteAttachment(new AttachmentLookupCondition(opportunityId, attachmentId));
@@ -176,12 +189,47 @@ public class AttachmentServiceImpl implements AttachmentService {
         deleteStoredFileQuietly(selectStoragePath(attachment.getStoragePath()));
     }
 
-    private OpportunityDetailsDto selectExistingOpportunity(Long opportunityId) {
-        OpportunityDetailsDto opportunity = opportunityDao.selectOpportunityDetails(opportunityId);
+    private OpportunityDetailsDto selectExistingOpportunityByAccess(Long opportunityId, Authentication authentication) {
+        DepartmentAccessScope readableScope = departmentAccessService.selectReadableScope(authentication);
+        OpportunityDetailsDto opportunity = opportunityDao.selectOpportunityDetailsByAccess(
+            selectOpportunityAccessCondition(opportunityId, readableScope)
+        );
         if (opportunity == null) {
-            throw new BusinessException("영업 사이트를 찾을 수 없습니다.");
+            throw new BusinessException("영업 사이트를 찾을 수 없거나 열람 권한이 없습니다.");
         }
         return opportunity;
+    }
+
+    private OpportunityAccessCondition selectOpportunityAccessCondition(
+        Long opportunityId,
+        DepartmentAccessScope accessScope
+    ) {
+        OpportunityAccessCondition condition = new OpportunityAccessCondition();
+        condition.setOpportunityId(opportunityId);
+        condition.setAllDepartments(accessScope.isAllDepartments());
+        condition.setDepartmentCodes(accessScope.getDepartmentCodes());
+        condition.setUserId(accessScope.getUserId());
+        condition.setAllConfidential(accessScope.isAllConfidential());
+        return condition;
+    }
+
+    private Long selectAuthenticatedUserId(Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof KinotonUserDetails userDetails) {
+            return userDetails.selectUserId();
+        }
+        return null;
+    }
+
+    private void validateOpportunityProgress(Long opportunityId, Long opportunityProgressId) {
+        if (opportunityProgressId == null) {
+            return;
+        }
+        OpportunityProgressLookupCondition condition = new OpportunityProgressLookupCondition();
+        condition.setOpportunityId(opportunityId);
+        condition.setOpportunityProgressId(opportunityProgressId);
+        if (opportunityDao.selectOpportunityProgressCount(condition) < 1) {
+            throw new BusinessException("선택한 진행 기록이 해당 영업 사이트에 속하지 않습니다.");
+        }
     }
 
     private AttachmentDetailsDto selectExistingAttachment(Long opportunityId, Long attachmentId) {
@@ -248,6 +296,7 @@ public class AttachmentServiceImpl implements AttachmentService {
         data.put("storedFilename", attachment.getStoredFilename());
         data.put("contentType", attachment.getContentType());
         data.put("fileSizeBytes", attachment.getFileSizeBytes());
+        data.put("opportunityProgressId", attachment.getOpportunityProgressId());
         return data;
     }
 
@@ -261,6 +310,7 @@ public class AttachmentServiceImpl implements AttachmentService {
         data.put("storedFilename", attachment.getStoredFilename());
         data.put("contentType", attachment.getContentType());
         data.put("fileSizeBytes", attachment.getFileSizeBytes());
+        data.put("opportunityProgressId", attachment.getOpportunityProgressId());
         return data;
     }
 

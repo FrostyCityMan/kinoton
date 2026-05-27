@@ -1,10 +1,12 @@
 package com.kinoton.sales.common.config;
 
+import com.kinoton.sales.auth.handler.LoginAuditFailureHandler;
+import com.kinoton.sales.auth.handler.LoginAuditSuccessHandler;
+import com.kinoton.sales.auth.handler.LogoutAuditSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,7 +18,12 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+        HttpSecurity http,
+        LoginAuditSuccessHandler loginAuditSuccessHandler,
+        LoginAuditFailureHandler loginAuditFailureHandler,
+        LogoutAuditSuccessHandler logoutAuditSuccessHandler
+    ) throws Exception {
         return http
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(
@@ -33,10 +40,13 @@ public class SecurityConfig {
             )
             .formLogin(login -> login
                 .loginPage("/login")
-                .defaultSuccessUrl("/dashboard", true)
+                .successHandler(loginAuditSuccessHandler)
+                .failureHandler(loginAuditFailureHandler)
                 .permitAll()
             )
-            .logout(Customizer.withDefaults())
+            .logout(logout -> logout
+                .logoutSuccessHandler(logoutAuditSuccessHandler)
+            )
             .build();
     }
 

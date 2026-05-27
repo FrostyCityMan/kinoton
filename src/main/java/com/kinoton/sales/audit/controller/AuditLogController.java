@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @PreAuthorize("hasRole('ADMIN')")
 public class AuditLogController {
 
+    private static final String TARGET_TYPE_AUTH = "AUTH";
+
     private final AuditLogService auditLogService;
 
     public AuditLogController(AuditLogService auditLogService) {
@@ -32,11 +34,32 @@ public class AuditLogController {
         return "audit/list";
     }
 
+    @GetMapping("/access-logs")
+    public String selectAccessLogListPage(
+        @ModelAttribute AuditLogSearchCondition condition,
+        Model model
+    ) {
+        condition.setTargetType(TARGET_TYPE_AUTH);
+        AuditLogResponse response = auditLogService.selectAuditLogList(condition);
+        model.addAttribute("condition", condition);
+        model.addAttribute("accessLogs", response.items());
+        return "audit/access-list";
+    }
+
     @GetMapping("/api/v1/audit-logs")
     @ResponseBody
     public ApiResponse<AuditLogResponse> selectAuditLogList(
         @ModelAttribute AuditLogSearchCondition condition
     ) {
+        return ApiResponse.success(auditLogService.selectAuditLogList(condition));
+    }
+
+    @GetMapping("/api/v1/access-logs")
+    @ResponseBody
+    public ApiResponse<AuditLogResponse> selectAccessLogList(
+        @ModelAttribute AuditLogSearchCondition condition
+    ) {
+        condition.setTargetType(TARGET_TYPE_AUTH);
         return ApiResponse.success(auditLogService.selectAuditLogList(condition));
     }
 }

@@ -26,6 +26,7 @@
             <table>
                 <thead>
                 <tr>
+                    <th>보안</th>
                     <th>사업본부</th>
                     <th>고객사명</th>
                     <th>사업명</th>
@@ -39,6 +40,9 @@
                 </thead>
                 <tbody>
                 <tr th:each="opportunity : ${opportunities}">
+                    <td>
+                        <span class="stage-chip" th:text="${opportunity.securityLevelName}">일반</span>
+                    </td>
                     <td th:text="${opportunity.departmentName}">DE 사업본부</td>
                     <td th:text="${opportunity.customerName}">고객사</td>
                     <td>
@@ -65,7 +69,7 @@
                     </td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(opportunities)}">
-                    <td colspan="9" class="empty-cell">등록된 영업 사이트가 없습니다.</td>
+                    <td colspan="10" class="empty-cell">등록된 영업 사이트가 없습니다.</td>
                 </tr>
                 </tbody>
             </table>

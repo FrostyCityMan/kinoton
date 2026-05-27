@@ -11,6 +11,7 @@ public class OpportunityDetailsDto {
     private String customerName;
     private String projectName;
     private String ownerName;
+    private String securityLevel;
     private String expectedOrderPeriod;
     private String expectedDeliveryPeriod;
     private BigDecimal projectAmount;
@@ -72,6 +73,22 @@ public class OpportunityDetailsDto {
 
     public void setOwnerName(String ownerName) {
         this.ownerName = ownerName;
+    }
+
+    public String getSecurityLevel() {
+        return securityLevel;
+    }
+
+    public void setSecurityLevel(String securityLevel) {
+        this.securityLevel = securityLevel;
+    }
+
+    public boolean isConfidential() {
+        return "CONFIDENTIAL".equals(securityLevel);
+    }
+
+    public String getSecurityLevelName() {
+        return isConfidential() ? "보안" : "일반";
     }
 
     public String getExpectedOrderPeriod() {

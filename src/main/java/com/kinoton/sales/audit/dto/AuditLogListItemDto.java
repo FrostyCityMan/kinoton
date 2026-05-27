@@ -103,4 +103,44 @@ public class AuditLogListItemDto {
     public void setCreatedAt(OffsetDateTime createdAt) {
         this.createdAt = createdAt;
     }
+
+    public String getActorDisplayName() {
+        if (actorName != null && !actorName.isBlank()) {
+            return actorName;
+        }
+        return actorUserId == null ? "SYSTEM" : "#" + actorUserId;
+    }
+
+    public String getTargetDisplayName() {
+        if (targetId == null) {
+            return targetType;
+        }
+        return targetType + " #" + targetId;
+    }
+
+    public String getActionName() {
+        if ("LOGIN_SUCCESS".equals(action)) {
+            return "로그인 성공";
+        }
+        if ("LOGIN_FAILURE".equals(action)) {
+            return "로그인 실패";
+        }
+        if ("LOGOUT_SUCCESS".equals(action)) {
+            return "로그아웃";
+        }
+        if ("DOWNLOAD_ATTACHMENT".equals(action)) {
+            return "첨부파일 다운로드";
+        }
+        if ("DOWNLOAD_REPORT_EXCEL".equals(action)) {
+            return "Excel 다운로드";
+        }
+        if ("DOWNLOAD_REPORT_PDF".equals(action)) {
+            return "PDF 다운로드";
+        }
+        return action;
+    }
+
+    public boolean isAccessLog() {
+        return "AUTH".equals(targetType);
+    }
 }

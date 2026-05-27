@@ -1,5 +1,6 @@
 package com.kinoton.sales.report.service.impl;
 
+import com.kinoton.sales.report.dto.OpportunityReportDepartmentSummaryDto;
 import com.kinoton.sales.report.dto.OpportunityReportItemDto;
 import com.kinoton.sales.report.dto.OpportunityReportResponse;
 import org.springframework.stereotype.Component;
@@ -36,7 +37,8 @@ public class ReportPdfWriter {
     }
 
     private BufferedImage renderReportImage(OpportunityReportResponse report) {
-        int height = Math.max(900, TOP_PADDING + 170 + (report.items().size() + 1) * ROW_HEIGHT);
+        int tableRows = report.departmentSummaries().size() + report.items().size() + 4;
+        int height = Math.max(980, TOP_PADDING + 210 + tableRows * ROW_HEIGHT);
         BufferedImage image = new BufferedImage(WIDTH, height, BufferedImage.TYPE_INT_RGB);
         Graphics2D graphics = image.createGraphics();
         graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
@@ -46,6 +48,7 @@ public class ReportPdfWriter {
 
         Font titleFont = new Font("SansSerif", Font.BOLD, 34);
         Font labelFont = new Font("SansSerif", Font.PLAIN, 20);
+        Font sectionFont = new Font("SansSerif", Font.BOLD, 22);
         Font headerFont = new Font("SansSerif", Font.BOLD, 18);
         Font bodyFont = new Font("SansSerif", Font.PLAIN, 17);
 
@@ -55,21 +58,54 @@ public class ReportPdfWriter {
         graphics.setFont(labelFont);
         graphics.setColor(new Color(90, 84, 76));
         graphics.drawString(
+            report.summary().getPeriodLabel() + " · " + report.summary().getPeriodBasisLabel(),
+            50,
+            TOP_PADDING + 42
+        );
+        graphics.drawString(
             "총 " + report.summary().getTotalCount() + "건 · 사업총액 "
                 + report.summary().getTotalProjectAmount() + "억원 · 확정 "
                 + report.summary().getConfirmedRevenueAmount() + "억원 · 기대 "
                 + report.summary().getExpectedRevenueAmount() + "억원",
             50,
-            TOP_PADDING + 42
+            TOP_PADDING + 78
         );
 
-        int y = TOP_PADDING + 95;
+        int y = TOP_PADDING + 125;
+        graphics.setColor(new Color(21, 21, 21));
+        graphics.setFont(sectionFont);
+        graphics.drawString("사업본부별 집계", 50, y);
+        y += 20;
+
+        int[] summaryWidths = {260, 100, 170, 170, 170, 130, 170};
+        String[] summaryHeaders = {"사업본부", "건수", "사업총액", "확정매출", "기대매출", "보류·실주", "보류·실주 금액"};
+        drawRow(graphics, y, summaryWidths, summaryHeaders, headerFont, new Color(255, 240, 232));
+        y += ROW_HEIGHT;
+        for (OpportunityReportDepartmentSummaryDto summary : report.departmentSummaries()) {
+            String[] values = {
+                nullToBlank(summary.getDepartmentName()),
+                summary.getTotalCount() + "건",
+                summary.getTotalProjectAmount() + "억원",
+                summary.getConfirmedRevenueAmount() + "억원",
+                summary.getExpectedRevenueAmount() + "억원",
+                summary.getHoldLostCount() + "건",
+                summary.getHoldLostAmount() + "억원"
+            };
+            drawRow(graphics, y, summaryWidths, values, bodyFont, Color.WHITE);
+            y += ROW_HEIGHT;
+        }
+
+        y += 26;
+        graphics.setColor(new Color(21, 21, 21));
+        graphics.setFont(sectionFont);
+        graphics.drawString("영업 사이트 목록", 50, y);
+        y += 20;
+
         int[] widths = {150, 190, 350, 140, 150, 150, 130, 120, 155, 135};
         String[] headers = {"사업본부", "고객사명", "사업명", "담당자", "예상발주", "구축시기", "사업총액", "상태", "수주확률", "매출구분"};
         drawRow(graphics, y, widths, headers, headerFont, new Color(255, 240, 232));
         y += ROW_HEIGHT;
 
-        graphics.setFont(bodyFont);
         for (OpportunityReportItemDto item : report.items()) {
             String[] values = {
                 nullToBlank(item.getDepartmentName()),

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kinoton 접속 로그</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div class="app-shell">
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <main class="content">
+        <header th:replace="~{fragments/layout :: header}"></header>
+
+        <section class="page-title">
+            <div>
+                <h1>접속 로그</h1>
+                <p>로그인 성공, 로그인 실패, 로그아웃 이력을 IP와 사용자 에이전트 기준으로 확인합니다.</p>
+            </div>
+        </section>
+
+        <section class="audit-filter-panel">
+            <form th:action="@{/access-logs}" method="get" class="audit-filter-form access-filter-form">
+                <label>
+                    <span>접속 이벤트</span>
+                    <select name="action">
+                        <option value="">전체</option>
+                        <option value="LOGIN_SUCCESS" th:selected="${condition.action == 'LOGIN_SUCCESS'}">로그인 성공</option>
+                        <option value="LOGIN_FAILURE" th:selected="${condition.action == 'LOGIN_FAILURE'}">로그인 실패</option>
+                        <option value="LOGOUT_SUCCESS" th:selected="${condition.action == 'LOGOUT_SUCCESS'}">로그아웃</option>
+                    </select>
+                </label>
+                <label>
+                    <span>사용자 ID</span>
+                    <input type="number" name="actorUserId" th:value="${condition.actorUserId}" min="1">
+                </label>
+                <label>
+                    <span>조회 건수</span>
+                    <select name="limit">
+                        <option value="50" th:selected="${condition.limit == 50}">50</option>
+                        <option value="100" th:selected="${condition.limit == 100}">100</option>
+                        <option value="200" th:selected="${condition.limit == 200}">200</option>
+                        <option value="500" th:selected="${condition.limit == 500}">500</option>
+                    </select>
+                </label>
+                <button type="submit">조회</button>
+            </form>
+        </section>
+
+        <section class="table-panel access-table-panel">
+            <table>
+                <thead>
+                <tr>
+                    <th>일시</th>
+                    <th>사용자</th>
+                    <th>이벤트</th>
+                    <th>IP</th>
+                    <th>User-Agent</th>
+                    <th>세부 정보</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="accessLog : ${accessLogs}">
+                    <td th:text="${#temporals.format(accessLog.createdAt, 'yyyy-MM-dd HH:mm:ss')}">2026-05-27 10:00:00</td>
+                    <td>
+                        <strong th:text="${accessLog.actorDisplayName}">관리자</strong>
+                        <span class="muted-inline" th:text="${accessLog.actorUserId != null ? '#' + accessLog.actorUserId : ''}">#1</span>
+                    </td>
+                    <td>
+                        <span class="stage-chip" th:text="${accessLog.actionName}">로그인 성공</span>
+                    </td>
+                    <td th:text="${accessLog.ipAddress}">127.0.0.1</td>
+                    <td class="user-agent-cell" th:text="${accessLog.userAgent}">Mozilla</td>
+                    <td><pre class="audit-json" th:text="${accessLog.afterData}">{}</pre></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(accessLogs)}">
+                    <td colspan="6" class="empty-cell">조회된 접속 로그가 없습니다.</td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </main>
+</div>
+</body>
+</html>

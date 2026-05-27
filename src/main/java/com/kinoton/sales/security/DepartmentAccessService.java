@@ -15,17 +15,37 @@ public class DepartmentAccessService {
     public DepartmentAccessScope selectReadableScope(Authentication authentication) {
         KinotonUserDetails userDetails = selectUserDetails(authentication);
         if (canAccessAllDepartments(userDetails)) {
-            return new DepartmentAccessScope(true, null);
+            return new DepartmentAccessScope(
+                true,
+                null,
+                userDetails.selectUserId(),
+                canAccessAllConfidential(userDetails)
+            );
         }
-        return new DepartmentAccessScope(false, userDetails.selectReadableDepartmentCodes());
+        return new DepartmentAccessScope(
+            false,
+            userDetails.selectReadableDepartmentCodes(),
+            userDetails.selectUserId(),
+            canAccessAllConfidential(userDetails)
+        );
     }
 
     public DepartmentAccessScope selectWritableScope(Authentication authentication) {
         KinotonUserDetails userDetails = selectUserDetails(authentication);
         if (canAccessAllDepartments(userDetails)) {
-            return new DepartmentAccessScope(true, null);
+            return new DepartmentAccessScope(
+                true,
+                null,
+                userDetails.selectUserId(),
+                canAccessAllConfidential(userDetails)
+            );
         }
-        return new DepartmentAccessScope(false, userDetails.selectWritableDepartmentCodes());
+        return new DepartmentAccessScope(
+            false,
+            userDetails.selectWritableDepartmentCodes(),
+            userDetails.selectUserId(),
+            canAccessAllConfidential(userDetails)
+        );
     }
 
     public void validateReadableDepartment(String departmentCode, Authentication authentication) {
@@ -42,6 +62,10 @@ public class DepartmentAccessService {
 
     private boolean canAccessAllDepartments(KinotonUserDetails userDetails) {
         return userDetails.hasRole(ADMIN_ROLE) || userDetails.hasRole(EXECUTIVE_ROLE);
+    }
+
+    private boolean canAccessAllConfidential(KinotonUserDetails userDetails) {
+        return userDetails.hasRole(ADMIN_ROLE);
     }
 
     private KinotonUserDetails selectUserDetails(Authentication authentication) {

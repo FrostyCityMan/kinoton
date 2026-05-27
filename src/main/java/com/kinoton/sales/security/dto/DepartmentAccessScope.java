@@ -6,10 +6,19 @@ public class DepartmentAccessScope {
 
     private final boolean allDepartments;
     private final List<String> departmentCodes;
+    private final Long userId;
+    private final boolean allConfidential;
 
-    public DepartmentAccessScope(boolean allDepartments, List<String> departmentCodes) {
+    public DepartmentAccessScope(
+        boolean allDepartments,
+        List<String> departmentCodes,
+        Long userId,
+        boolean allConfidential
+    ) {
         this.allDepartments = allDepartments;
         this.departmentCodes = departmentCodes == null ? List.of() : List.copyOf(departmentCodes);
+        this.userId = userId;
+        this.allConfidential = allConfidential;
     }
 
     public boolean isAllDepartments() {
@@ -18,6 +27,14 @@ public class DepartmentAccessScope {
 
     public List<String> getDepartmentCodes() {
         return departmentCodes;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public boolean isAllConfidential() {
+        return allConfidential;
     }
 
     public boolean canAccess(String departmentCode) {

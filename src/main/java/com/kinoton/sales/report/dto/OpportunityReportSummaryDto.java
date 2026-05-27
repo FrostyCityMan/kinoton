@@ -4,12 +4,30 @@ import java.math.BigDecimal;
 
 public class OpportunityReportSummaryDto {
 
+    private String periodLabel;
+    private String periodBasisLabel;
     private int totalCount;
     private BigDecimal totalProjectAmount = BigDecimal.ZERO;
     private BigDecimal confirmedRevenueAmount = BigDecimal.ZERO;
     private BigDecimal expectedRevenueAmount = BigDecimal.ZERO;
     private int holdLostCount;
     private BigDecimal holdLostAmount = BigDecimal.ZERO;
+
+    public String getPeriodLabel() {
+        return periodLabel;
+    }
+
+    public void setPeriodLabel(String periodLabel) {
+        this.periodLabel = periodLabel;
+    }
+
+    public String getPeriodBasisLabel() {
+        return periodBasisLabel;
+    }
+
+    public void setPeriodBasisLabel(String periodBasisLabel) {
+        this.periodBasisLabel = periodBasisLabel;
+    }
 
     public int getTotalCount() {
         return totalCount;

@@ -9,6 +9,8 @@ public class OpportunityCreateCommandDto {
     private String customerName;
     private String projectName;
     private String ownerName;
+    private Long ownerEmployeeId;
+    private String securityLevel;
     private String expectedOrderPeriod;
     private String expectedDeliveryPeriod;
     private BigDecimal projectAmount;
@@ -54,6 +56,22 @@ public class OpportunityCreateCommandDto {
 
     public void setOwnerName(String ownerName) {
         this.ownerName = ownerName;
+    }
+
+    public Long getOwnerEmployeeId() {
+        return ownerEmployeeId;
+    }
+
+    public void setOwnerEmployeeId(Long ownerEmployeeId) {
+        this.ownerEmployeeId = ownerEmployeeId;
+    }
+
+    public String getSecurityLevel() {
+        return securityLevel;
+    }
+
+    public void setSecurityLevel(String securityLevel) {
+        this.securityLevel = securityLevel;
     }
 
     public String getExpectedOrderPeriod() {

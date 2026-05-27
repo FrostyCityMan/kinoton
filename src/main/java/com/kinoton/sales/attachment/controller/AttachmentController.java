@@ -46,11 +46,18 @@ public class AttachmentController {
     @PostMapping("/opportunities/{opportunityId}/attachments")
     public String insertAttachmentPage(
         @PathVariable Long opportunityId,
+        @RequestParam(value = "opportunityProgressId", required = false) Long opportunityProgressId,
         @RequestParam("file") MultipartFile file,
         Authentication authentication,
         RedirectAttributes redirectAttributes
     ) {
-        attachmentService.insertAttachment(opportunityId, file, selectAuthenticatedUserId(authentication), authentication);
+        attachmentService.insertAttachment(
+            opportunityId,
+            opportunityProgressId,
+            file,
+            selectAuthenticatedUserId(authentication),
+            authentication
+        );
         redirectAttributes.addFlashAttribute("message", "첨부파일이 업로드되었습니다.");
         return "redirect:/opportunities/" + opportunityId;
     }
@@ -59,11 +66,18 @@ public class AttachmentController {
     @ResponseBody
     public ApiResponse<AttachmentCreateResponse> insertAttachment(
         @PathVariable Long opportunityId,
+        @RequestParam(value = "opportunityProgressId", required = false) Long opportunityProgressId,
         @RequestParam("file") MultipartFile file,
         Authentication authentication
     ) {
         return ApiResponse.success(
-            attachmentService.insertAttachment(opportunityId, file, selectAuthenticatedUserId(authentication), authentication),
+            attachmentService.insertAttachment(
+                opportunityId,
+                opportunityProgressId,
+                file,
+                selectAuthenticatedUserId(authentication),
+                authentication
+            ),
             "첨부파일이 업로드되었습니다."
         );
     }

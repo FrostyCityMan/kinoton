@@ -17,16 +17,32 @@
         <section class="page-title">
             <div>
                 <h1>영업 보고서</h1>
-                <p>권한 범위 안의 영업 현황을 화면, Excel, PDF로 출력합니다.</p>
+                <p>월간·연간 기준으로 영업 진행 현황과 매출 집계를 조회하고 출력합니다.</p>
             </div>
             <div class="report-export-actions">
-                <a th:href="@{/reports/opportunities/excel(departmentCode=${condition.departmentCode}, status=${condition.status})}">Excel 다운로드</a>
-                <a th:href="@{/reports/opportunities/pdf(departmentCode=${condition.departmentCode}, status=${condition.status})}">PDF 다운로드</a>
+                <a th:href="@{/reports/opportunities/excel(periodType=${condition.periodType}, reportYear=${condition.reportYear}, reportMonth=${condition.reportMonth}, departmentCode=${condition.departmentCode}, status=${condition.status})}">Excel 다운로드</a>
+                <a th:href="@{/reports/opportunities/pdf(periodType=${condition.periodType}, reportYear=${condition.reportYear}, reportMonth=${condition.reportMonth}, departmentCode=${condition.departmentCode}, status=${condition.status})}">PDF 다운로드</a>
             </div>
         </section>
 
         <section class="report-filter-panel">
             <form th:action="@{/reports}" method="get" class="report-filter-form">
+                <label>
+                    <span>기간 구분</span>
+                    <select name="periodType">
+                        <option value="MONTHLY" th:selected="${condition.monthlyPeriod}">월간</option>
+                        <option value="YEARLY" th:selected="${condition.yearlyPeriod}">연간</option>
+                        <option value="ALL" th:selected="${condition.allPeriod}">전체</option>
+                    </select>
+                </label>
+                <label>
+                    <span>기준연도</span>
+                    <input type="number" name="reportYear" min="2000" max="2100" th:value="${condition.reportYear}" placeholder="예: 2026">
+                </label>
+                <label>
+                    <span>기준월</span>
+                    <input type="number" name="reportMonth" min="1" max="12" th:value="${condition.reportMonth}" placeholder="1-12">
+                </label>
                 <label>
                     <span>사업본부</span>
                     <select name="departmentCode">
@@ -51,6 +67,12 @@
                 </label>
                 <button type="submit">조회</button>
             </form>
+        </section>
+
+        <section class="status-strip" aria-label="보고서 기간 기준">
+            <span>보고 기간</span>
+            <strong th:text="${summary.periodLabel}">2026년 5월</strong>
+            <span th:text="${summary.periodBasisLabel}">영업 진행 기록의 미팅 일자 기준</span>
         </section>
 
         <section class="metric-grid" aria-label="보고서 요약">
@@ -79,10 +101,41 @@
             <small>사업총액, 확정매출, 기대매출 집계에서 제외</small>
         </section>
 
+        <section class="table-panel report-summary-table-panel">
+            <table>
+                <thead>
+                <tr>
+                    <th>사업본부</th>
+                    <th>건수</th>
+                    <th>사업총액</th>
+                    <th>확정매출</th>
+                    <th>기대매출</th>
+                    <th>보류·실주</th>
+                    <th>보류·실주 금액</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="departmentSummary : ${departmentSummaries}">
+                    <td th:text="${departmentSummary.departmentName}">DE 사업본부</td>
+                    <td th:text="${departmentSummary.totalCount} + '건'">0건</td>
+                    <td th:text="${departmentSummary.totalProjectAmount} + '억원'">0억원</td>
+                    <td th:text="${departmentSummary.confirmedRevenueAmount} + '억원'">0억원</td>
+                    <td th:text="${departmentSummary.expectedRevenueAmount} + '억원'">0억원</td>
+                    <td th:text="${departmentSummary.holdLostCount} + '건'">0건</td>
+                    <td th:text="${departmentSummary.holdLostAmount} + '억원'">0억원</td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(departmentSummaries)}">
+                    <td colspan="7" class="empty-cell">집계할 사업본부 데이터가 없습니다.</td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+
         <section class="table-panel report-table-panel">
             <table>
                 <thead>
                 <tr>
+                    <th>보안</th>
                     <th>사업본부</th>
                     <th>고객사명</th>
                     <th>사업명</th>
@@ -97,6 +150,9 @@
                 </thead>
                 <tbody>
                 <tr th:each="item : ${items}">
+                    <td>
+                        <span class="stage-chip" th:text="${item.securityLevelName}">일반</span>
+                    </td>
                     <td th:text="${item.departmentName}">DE 사업본부</td>
                     <td th:text="${item.customerName}">고객사</td>
                     <td>
@@ -119,7 +175,7 @@
                     <td th:text="${item.revenueCategory}">기대매출</td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(items)}">
-                    <td colspan="10" class="empty-cell">보고서에 표시할 영업 사이트가 없습니다.</td>
+                    <td colspan="11" class="empty-cell">보고서에 표시할 영업 사이트가 없습니다.</td>
                 </tr>
                 </tbody>
             </table>

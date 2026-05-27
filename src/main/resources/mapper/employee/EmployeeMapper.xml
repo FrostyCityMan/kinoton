@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kinoton.sales.employee.dao.EmployeeDao">
+    <resultMap id="EmployeeListItemMap" type="com.kinoton.sales.employee.dto.EmployeeListItemDto">
+        <id property="employeeId" column="employee_id"/>
+        <result property="departmentCode" column="department_code"/>
+        <result property="departmentName" column="department_name"/>
+        <result property="name" column="name"/>
+        <result property="positionName" column="position_name"/>
+        <result property="email" column="email"/>
+        <result property="phone" column="phone"/>
+        <result property="active" column="is_active"/>
+    </resultMap>
+
+    <resultMap id="EmployeeOptionMap" type="com.kinoton.sales.employee.dto.EmployeeOptionDto">
+        <id property="employeeId" column="employee_id"/>
+        <result property="name" column="name"/>
+        <result property="departmentName" column="department_name"/>
+        <result property="positionName" column="position_name"/>
+    </resultMap>
+
+    <resultMap id="DepartmentOptionMap" type="com.kinoton.sales.probability.dto.DepartmentOptionDto">
+        <id property="departmentId" column="department_id"/>
+        <result property="code" column="code"/>
+        <result property="name" column="name"/>
+    </resultMap>
+
+    <select id="selectEmployeeList" resultMap="EmployeeListItemMap">
+        -- 직원 마스터 목록을 조회한다.
+        SELECT
+            e.employee_id,
+            d.code AS department_code,
+            d.name AS department_name,
+            e.name,
+            e.position_name,
+            e.email,
+            e.phone,
+            e.is_active
+        FROM employees e
+        LEFT JOIN departments d
+            ON d.department_id = e.department_id
+        ORDER BY e.is_active DESC, d.display_order, e.name, e.employee_id
+    </select>
+
+    <select id="selectEmployeeOptionList" resultMap="EmployeeOptionMap">
+        -- 영업 담당자 선택용 활성 직원 목록을 조회한다.
+        SELECT
+            e.employee_id,
+            e.name,
+            d.name AS department_name,
+            e.position_name
+        FROM employees e
+        LEFT JOIN departments d
+            ON d.department_id = e.department_id
+        WHERE e.is_active = TRUE
+        ORDER BY d.display_order, e.name, e.employee_id
+    </select>
+
+    <select id="selectActiveEmployeeOptionDetails" parameterType="long" resultMap="EmployeeOptionMap">
+        -- 영업 담당자로 선택된 활성 직원 상세를 조회한다.
+        SELECT
+            e.employee_id,
+            e.name,
+            d.name AS department_name,
+            e.position_name
+        FROM employees e
+        LEFT JOIN departments d
+            ON d.department_id = e.department_id
+        WHERE e.employee_id = #{employeeId}
+          AND e.is_active = TRUE
+    </select>
+
+    <select id="selectDepartmentIdByCode" parameterType="string" resultType="long">
+        -- 직원 소속 사업본부 코드를 기준으로 부서 ID를 조회한다.
+        SELECT
+            d.department_id
+        FROM departments d
+        WHERE d.code = #{departmentCode}
+          AND d.is_active = TRUE
+    </select>
+
+    <select id="selectDepartmentOptionList" resultMap="DepartmentOptionMap">
+        -- 직원 등록 화면의 활성 사업본부 목록을 조회한다.
+        SELECT
+            d.department_id,
+            d.code,
+            d.name
+        FROM departments d
+        WHERE d.is_active = TRUE
+        ORDER BY d.display_order, d.department_id
+    </select>
+
+    <insert id="insertEmployee"
+            parameterType="com.kinoton.sales.employee.dto.EmployeeCreateCommandDto"
+            useGeneratedKeys="true"
+            keyProperty="employeeId"
+            keyColumn="employee_id">
+        -- 신규 직원을 마스터에 등록한다.
+        INSERT INTO employees (
+            department_id,
+            name,
+            position_name,
+            email,
+            phone,
+            is_active
+        )
+        VALUES (
+            #{departmentId},
+            #{name},
+            #{positionName},
+            #{email},
+            #{phone},
+            #{active}
+        )
+    </insert>
+</mapper>

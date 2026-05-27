@@ -12,13 +12,11 @@ public interface ProbabilityStageDao {
 
     List<DepartmentOptionDto> selectDepartmentOptionList();
 
-    DepartmentOptionDto selectDepartmentByCode(String departmentCode);
+    List<ProbabilityStageItemDto> selectProbabilityStageList();
 
-    List<ProbabilityStageItemDto> selectProbabilityStageListByDepartmentId(Long departmentId);
+    List<Long> selectActiveProbabilityStageIdList();
 
-    List<Long> selectActiveProbabilityStageIdListByDepartmentId(Long departmentId);
-
-    Long selectProbabilityStageIdByDepartmentAndProbability(ProbabilityStageCommandDto command);
+    Long selectProbabilityStageIdByProbability(ProbabilityStageCommandDto command);
 
     int selectOpportunityCountByProbabilityStageId(Long probabilityStageId);
 

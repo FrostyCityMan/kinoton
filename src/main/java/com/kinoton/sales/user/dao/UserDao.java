@@ -11,6 +11,8 @@ public interface UserDao {
 
     AuthUserDto selectUserByEmail(String email);
 
+    void updateUserLastLoginAt(Long userId);
+
     List<String> selectRoleCodeListByUserId(Long userId);
 
     List<DepartmentPermissionDto> selectDepartmentPermissionListByUserId(Long userId);

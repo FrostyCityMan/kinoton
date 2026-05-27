@@ -10,7 +10,14 @@ public interface ProbabilityStageService {
 
     List<DepartmentOptionDto> selectDepartmentOptionList();
 
+    ProbabilityStageSettingResponse selectProbabilityStageSetting();
+
     ProbabilityStageSettingResponse selectProbabilityStageSetting(String departmentCode);
+
+    ProbabilityStageSettingResponse saveProbabilityStageSetting(
+        ProbabilityStageSaveRequest request,
+        Long updatedBy
+    );
 
     ProbabilityStageSettingResponse saveProbabilityStageSetting(
         String departmentCode,

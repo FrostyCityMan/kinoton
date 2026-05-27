@@ -35,6 +35,16 @@
         FROM departments d
         LEFT JOIN opportunities o
             ON o.department_id = d.department_id
+            AND (
+                o.security_level = 'GENERAL'
+                OR #{allConfidential} = TRUE
+                OR EXISTS (
+                    SELECT 1
+                    FROM opportunity_view_permissions ovp
+                    WHERE ovp.opportunity_id = o.opportunity_id
+                      AND ovp.user_id = #{userId}
+                )
+            )
         LEFT JOIN probability_stages ps
             ON ps.probability_stage_id = o.probability_stage_id
         WHERE d.is_active = TRUE

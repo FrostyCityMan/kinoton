@@ -12,7 +12,6 @@
 
     <resultMap id="ProbabilityStageItemMap" type="com.kinoton.sales.probability.dto.ProbabilityStageItemDto">
         <id property="probabilityStageId" column="probability_stage_id"/>
-        <result property="departmentId" column="department_id"/>
         <result property="probability" column="probability"/>
         <result property="name" column="name"/>
         <result property="description" column="description"/>
@@ -32,22 +31,10 @@
         ORDER BY d.display_order, d.department_id
     </select>
 
-    <select id="selectDepartmentByCode" parameterType="string" resultMap="DepartmentOptionMap">
-        -- 사업본부 코드 기준으로 활성 사업본부를 조회한다.
-        SELECT
-            d.department_id,
-            d.code,
-            d.name
-        FROM departments d
-        WHERE d.code = #{departmentCode}
-          AND d.is_active = TRUE
-    </select>
-
-    <select id="selectProbabilityStageListByDepartmentId" parameterType="long" resultMap="ProbabilityStageItemMap">
-        -- 사업본부별 활성 수주확률 단계를 조회한다.
+    <select id="selectProbabilityStageList" resultMap="ProbabilityStageItemMap">
+        -- 전사 공통 활성 수주확률 단계를 조회한다.
         SELECT
             ps.probability_stage_id,
-            ps.department_id,
             ps.probability,
             ps.name,
             ps.description,
@@ -55,30 +42,27 @@
             ps.display_order,
             ps.is_active
         FROM probability_stages ps
-        WHERE ps.department_id = #{departmentId}
-          AND ps.is_active = TRUE
+        WHERE ps.is_active = TRUE
         ORDER BY ps.display_order, ps.probability
     </select>
 
-    <select id="selectActiveProbabilityStageIdListByDepartmentId" parameterType="long" resultType="long">
-        -- 사업본부별 활성 수주확률 단계 ID 목록을 조회한다.
+    <select id="selectActiveProbabilityStageIdList" resultType="long">
+        -- 전사 공통 활성 수주확률 단계 ID 목록을 조회한다.
         SELECT
             ps.probability_stage_id
         FROM probability_stages ps
-        WHERE ps.department_id = #{departmentId}
-          AND ps.is_active = TRUE
+        WHERE ps.is_active = TRUE
         ORDER BY ps.display_order, ps.probability
     </select>
 
-    <select id="selectProbabilityStageIdByDepartmentAndProbability"
+    <select id="selectProbabilityStageIdByProbability"
             parameterType="com.kinoton.sales.probability.dto.ProbabilityStageCommandDto"
             resultType="long">
-        -- 사업본부와 확률 기준으로 수주확률 단계 ID를 조회한다.
+        -- 확률 기준으로 전사 공통 수주확률 단계 ID를 조회한다.
         SELECT
             ps.probability_stage_id
         FROM probability_stages ps
-        WHERE ps.department_id = #{departmentId}
-          AND ps.probability = #{probability}
+        WHERE ps.probability = #{probability}
     </select>
 
     <select id="selectOpportunityCountByProbabilityStageId" parameterType="long" resultType="int">
@@ -94,9 +78,8 @@
             useGeneratedKeys="true"
             keyProperty="probabilityStageId"
             keyColumn="probability_stage_id">
-        -- 신규 수주확률 단계를 등록한다.
+        -- 신규 전사 공통 수주확률 단계를 등록한다.
         INSERT INTO probability_stages (
-            department_id,
             probability,
             name,
             description,
@@ -105,7 +88,6 @@
             is_active
         )
         VALUES (
-            #{departmentId},
             #{probability},
             #{name},
             #{description},
@@ -117,7 +99,7 @@
 
     <update id="updateProbabilityStage"
             parameterType="com.kinoton.sales.probability.dto.ProbabilityStageCommandDto">
-        -- 수주확률 단계 설정을 수정하고 활성 상태로 복구한다.
+        -- 전사 공통 수주확률 단계 설정을 수정하고 활성 상태로 복구한다.
         UPDATE probability_stages
         SET
             probability = #{probability},
@@ -128,11 +110,10 @@
             is_active = TRUE,
             updated_at = NOW()
         WHERE probability_stage_id = #{probabilityStageId}
-          AND department_id = #{departmentId}
     </update>
 
     <update id="deleteProbabilityStage" parameterType="long">
-        -- 수주확률 단계를 비활성화한다.
+        -- 전사 공통 수주확률 단계를 비활성화한다.
         UPDATE probability_stages
         SET
             is_active = FALSE,

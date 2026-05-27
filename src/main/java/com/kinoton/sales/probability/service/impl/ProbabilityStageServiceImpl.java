@@ -40,12 +40,23 @@ public class ProbabilityStageServiceImpl implements ProbabilityStageService {
 
     @Override
     @Transactional(readOnly = true)
+    public ProbabilityStageSettingResponse selectProbabilityStageSetting() {
+        return new ProbabilityStageSettingResponse(selectGlobalDepartmentOption(), probabilityStageDao.selectProbabilityStageList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public ProbabilityStageSettingResponse selectProbabilityStageSetting(String departmentCode) {
-        DepartmentOptionDto department = selectExistingDepartment(departmentCode);
-        return new ProbabilityStageSettingResponse(
-            department,
-            probabilityStageDao.selectProbabilityStageListByDepartmentId(department.getDepartmentId())
-        );
+        return selectProbabilityStageSetting();
+    }
+
+    @Override
+    @Transactional
+    public ProbabilityStageSettingResponse saveProbabilityStageSetting(
+        ProbabilityStageSaveRequest request,
+        Long updatedBy
+    ) {
+        return saveProbabilityStageSetting(null, request, updatedBy);
     }
 
     @Override
@@ -55,18 +66,15 @@ public class ProbabilityStageServiceImpl implements ProbabilityStageService {
         ProbabilityStageSaveRequest request,
         Long updatedBy
     ) {
-        DepartmentOptionDto department = selectExistingDepartment(departmentCode);
+        DepartmentOptionDto scope = selectGlobalDepartmentOption();
         validateRequest(request);
-        List<ProbabilityStageItemDto> beforeStages = probabilityStageDao.selectProbabilityStageListByDepartmentId(
-            department.getDepartmentId()
-        );
+        List<ProbabilityStageItemDto> beforeStages = probabilityStageDao.selectProbabilityStageList();
 
         Set<Long> requestedIds = new HashSet<>();
         int displayOrder = 1;
         for (ProbabilityStageSaveRow row : request.getStages()) {
             ProbabilityStageCommandDto command = new ProbabilityStageCommandDto();
             command.setProbabilityStageId(row.getProbabilityStageId());
-            command.setDepartmentId(department.getDepartmentId());
             command.setProbability(row.getProbability());
             command.setName(row.getName());
             command.setDescription(row.getDescription());
@@ -78,24 +86,23 @@ public class ProbabilityStageServiceImpl implements ProbabilityStageService {
             requestedIds.add(stageId);
         }
 
-        deleteMissingStages(department.getDepartmentId(), requestedIds);
-        ProbabilityStageSettingResponse response = selectProbabilityStageSetting(departmentCode);
+        deleteMissingStages(requestedIds);
+        ProbabilityStageSettingResponse response = selectProbabilityStageSetting();
         auditLogService.insertAuditLog(
             updatedBy,
             "PROBABILITY_STAGE_SETTING",
-            department.getDepartmentId(),
+            null,
             "SAVE_PROBABILITY_STAGES",
-            selectStageSettingAuditData(department, beforeStages),
-            selectStageSettingAuditData(department, response.stages())
+            selectStageSettingAuditData(scope, beforeStages),
+            selectStageSettingAuditData(scope, response.stages())
         );
         return response;
     }
 
-    private DepartmentOptionDto selectExistingDepartment(String departmentCode) {
-        DepartmentOptionDto department = probabilityStageDao.selectDepartmentByCode(departmentCode);
-        if (department == null) {
-            throw new BusinessException("존재하지 않는 사업본부입니다.");
-        }
+    private DepartmentOptionDto selectGlobalDepartmentOption() {
+        DepartmentOptionDto department = new DepartmentOptionDto();
+        department.setCode("GLOBAL");
+        department.setName("전사 공통");
         return department;
     }
 
@@ -118,7 +125,7 @@ public class ProbabilityStageServiceImpl implements ProbabilityStageService {
     }
 
     private Long saveStage(ProbabilityStageCommandDto command) {
-        Long existingStageId = probabilityStageDao.selectProbabilityStageIdByDepartmentAndProbability(command);
+        Long existingStageId = probabilityStageDao.selectProbabilityStageIdByProbability(command);
         if (command.getProbabilityStageId() != null) {
             if (existingStageId != null && !existingStageId.equals(command.getProbabilityStageId())) {
                 throw new BusinessException("이미 사용 중인 수주확률 값입니다.");
@@ -137,8 +144,8 @@ public class ProbabilityStageServiceImpl implements ProbabilityStageService {
         return command.getProbabilityStageId();
     }
 
-    private void deleteMissingStages(Long departmentId, Set<Long> requestedIds) {
-        List<Long> activeStageIds = probabilityStageDao.selectActiveProbabilityStageIdListByDepartmentId(departmentId);
+    private void deleteMissingStages(Set<Long> requestedIds) {
+        List<Long> activeStageIds = probabilityStageDao.selectActiveProbabilityStageIdList();
         for (Long activeStageId : activeStageIds) {
             if (requestedIds.contains(activeStageId)) {
                 continue;
@@ -152,13 +159,12 @@ public class ProbabilityStageServiceImpl implements ProbabilityStageService {
     }
 
     private Map<String, Object> selectStageSettingAuditData(
-        DepartmentOptionDto department,
+        DepartmentOptionDto scope,
         List<ProbabilityStageItemDto> stages
     ) {
         Map<String, Object> data = new LinkedHashMap<>();
-        data.put("departmentId", department.getDepartmentId());
-        data.put("departmentCode", department.getCode());
-        data.put("departmentName", department.getName());
+        data.put("scopeCode", scope.getCode());
+        data.put("scopeName", scope.getName());
         data.put("stages", stages);
         return data;
     }

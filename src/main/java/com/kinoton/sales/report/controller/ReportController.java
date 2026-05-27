@@ -36,6 +36,7 @@ public class ReportController {
         OpportunityReportResponse report = reportService.selectOpportunityReport(condition, authentication);
         model.addAttribute("condition", condition);
         model.addAttribute("summary", report.summary());
+        model.addAttribute("departmentSummaries", report.departmentSummaries());
         model.addAttribute("items", report.items());
         model.addAttribute("departments", report.departments());
         return "report/opportunity";

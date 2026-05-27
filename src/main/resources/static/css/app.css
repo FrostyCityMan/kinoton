@@ -437,12 +437,18 @@ a {
     gap: 10px;
 }
 
-.attachment-upload-form input {
+.attachment-upload-form input,
+.attachment-upload-form select {
     border: 1px solid var(--line);
     border-radius: 8px;
     font: inherit;
     max-width: 320px;
     padding: 9px 10px;
+}
+
+.progress-attachment-label {
+    color: var(--accent) !important;
+    font-weight: 700;
 }
 
 .attachment-upload-form button,
@@ -996,7 +1002,7 @@ a {
     align-items: end;
     display: grid;
     gap: 12px;
-    grid-template-columns: minmax(180px, 260px) minmax(160px, 220px) 100px;
+    grid-template-columns: minmax(130px, 180px) minmax(110px, 140px) minmax(100px, 120px) minmax(180px, 260px) minmax(160px, 220px) 100px;
 }
 
 .report-filter-form label {
@@ -1010,6 +1016,7 @@ a {
     font-weight: 700;
 }
 
+.report-filter-form input,
 .report-filter-form select {
     border: 1px solid var(--line);
     border-radius: 8px;
@@ -1017,6 +1024,14 @@ a {
     min-height: 42px;
     padding: 10px 12px;
     width: 100%;
+}
+
+.report-summary-table-panel {
+    margin-bottom: 18px;
+}
+
+.report-summary-table-panel table {
+    min-width: 940px;
 }
 
 .report-table-panel table {
@@ -1036,6 +1051,10 @@ a {
     display: grid;
     gap: 12px;
     grid-template-columns: minmax(160px, 220px) minmax(180px, 1fr) minmax(120px, 160px) 120px 92px;
+}
+
+.access-filter-form {
+    grid-template-columns: minmax(180px, 240px) minmax(140px, 180px) 120px 92px;
 }
 
 .audit-filter-form label {
@@ -1073,6 +1092,17 @@ a {
 
 .audit-table-panel table {
     min-width: 1360px;
+}
+
+.access-table-panel table {
+    min-width: 1120px;
+}
+
+.user-agent-cell {
+    color: var(--muted);
+    font-size: 12px;
+    max-width: 280px;
+    overflow-wrap: anywhere;
 }
 
 .audit-json {
@@ -1160,6 +1190,7 @@ a {
     }
 
     .attachment-upload-form input,
+    .attachment-upload-form select,
     .attachment-upload-form button,
     .attachment-actions a,
     .attachment-actions form,

@@ -14,6 +14,7 @@ public interface AttachmentService {
 
     AttachmentCreateResponse insertAttachment(
         Long opportunityId,
+        Long opportunityProgressId,
         MultipartFile file,
         Long uploadedBy,
         Authentication authentication

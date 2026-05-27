@@ -15,30 +15,21 @@
         <section class="page-title">
             <div>
                 <h1>수주확률 설정</h1>
-                <p>사업본부별 수주확률 단계와 설명을 관리합니다. 90% 이상 단계는 확정매출로 집계됩니다.</p>
+                <p>전사 공통 수주확률 단계와 설명을 관리합니다. 90% 이상 단계는 확정매출로 자동 집계됩니다.</p>
             </div>
         </section>
 
         <p th:if="${message}" class="form-message" th:text="${message}">저장되었습니다.</p>
 
         <section class="settings-panel">
-            <div class="department-tabs" aria-label="사업본부 선택">
-                <a th:each="department : ${departments}"
-                   th:href="@{/probability-stages(departmentCode=${department.code})}"
-                   th:text="${department.name}"
-                   th:classappend="${department.code == selectedDepartmentCode} ? ' active' : ''">
-                    DE 사업본부
-                </a>
-            </div>
-
             <div class="settings-heading">
                 <div>
-                    <h2 th:text="${setting.department().name} + ' 수주확률 단계'">DE 사업본부 수주확률 단계</h2>
-                    <p>확률값은 같은 사업본부 안에서 중복될 수 없습니다.</p>
+                    <h2 th:text="${setting.department().name} + ' 수주확률 단계'">전사 공통 수주확률 단계</h2>
+                    <p>모든 사업본부가 동일한 단계 목록을 사용하며, 각 영업 사이트에서 해당 단계를 선택합니다.</p>
                 </div>
             </div>
 
-            <form th:action="@{/probability-stages/{code}(code=${selectedDepartmentCode})}"
+            <form th:action="@{/probability-stages}"
                   th:object="${saveRequest}"
                   method="post"
                   class="stage-form">

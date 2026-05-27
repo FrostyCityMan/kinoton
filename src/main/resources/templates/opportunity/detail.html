@@ -34,6 +34,10 @@
 
         <section class="detail-grid" aria-label="영업 사이트 기본 정보">
             <div>
+                <span>보안 구분</span>
+                <strong th:text="${details.securityLevelName}">일반</strong>
+            </div>
+            <div>
                 <span>담당자</span>
                 <strong th:text="${details.ownerName}">담당자</strong>
             </div>
@@ -100,6 +104,40 @@
         <section class="attachment-panel">
             <div class="attachment-header">
                 <div>
+                    <h2>임원 코멘트</h2>
+                    <p>임원 또는 관리자가 남긴 의사결정 코멘트를 기록합니다.</p>
+                </div>
+            </div>
+
+            <form th:if="${canWriteExecutiveComment}"
+                  th:action="@{/opportunities/{id}/executive-comments(id=${details.opportunityId})}"
+                  th:object="${commentRequest}"
+                  method="post"
+                  class="progress-form">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <label for="executiveCommentContent">코멘트</label>
+                <textarea id="executiveCommentContent"
+                          th:field="*{content}"
+                          rows="4"
+                          placeholder="검토 의견, 의사결정 사항, 추가 확인 지시 등을 기록하세요."
+                          required></textarea>
+                <button type="submit">+ 코멘트 등록</button>
+            </form>
+
+            <div class="attachment-list" th:if="${!#lists.isEmpty(executiveComments)}">
+                <div class="attachment-row" th:each="comment : ${executiveComments}">
+                    <div>
+                        <strong th:text="${comment.content}">코멘트 내용</strong>
+                        <span th:text="${(comment.createdByName ?: '작성자 없음') + ' · ' + comment.createdAt}">작성자 · 일시</span>
+                    </div>
+                </div>
+            </div>
+            <p th:if="${#lists.isEmpty(executiveComments)}" class="empty-cell">등록된 임원 코멘트가 없습니다.</p>
+        </section>
+
+        <section class="attachment-panel">
+            <div class="attachment-header">
+                <div>
                     <h2>첨부파일</h2>
                     <p>제안서, 계약서, 시방서 등 영업 진행 관련 파일을 보관합니다.</p>
                 </div>
@@ -108,6 +146,14 @@
                       enctype="multipart/form-data"
                       class="attachment-upload-form">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <select name="opportunityProgressId" aria-label="첨부 대상 진행 기록">
+                        <option value="">영업 사이트 공통</option>
+                        <option th:each="progress : ${progressList}"
+                                th:value="${progress.opportunityProgressId}"
+                                th:text="${progress.progressDate + ' · ' + progress.probability + '% ' + progress.probabilityStageName}">
+                            2026-05-27 · 10% 영업 시작
+                        </option>
+                    </select>
                     <input type="file" name="file" required>
                     <button type="submit">업로드</button>
                 </form>
@@ -116,6 +162,7 @@
             <div class="attachment-list">
                 <div class="attachment-row" th:each="attachment : ${attachments}">
                     <div>
+                        <span class="progress-attachment-label" th:text="${attachment.progressLabel}">영업 사이트 공통 첨부</span>
                         <strong th:text="${attachment.originalFilename}">제안서.pdf</strong>
                         <span th:text="${attachment.fileSizeBytes + ' bytes · ' + (attachment.uploadedByName ?: '알 수 없음')}">0 bytes</span>
                     </div>

@@ -3,7 +3,6 @@ package com.kinoton.sales.probability.dto;
 public class ProbabilityStageCommandDto {
 
     private Long probabilityStageId;
-    private Long departmentId;
     private Integer probability;
     private String name;
     private String description;
@@ -17,14 +16,6 @@ public class ProbabilityStageCommandDto {
 
     public void setProbabilityStageId(Long probabilityStageId) {
         this.probabilityStageId = probabilityStageId;
-    }
-
-    public Long getDepartmentId() {
-        return departmentId;
-    }
-
-    public void setDepartmentId(Long departmentId) {
-        this.departmentId = departmentId;
     }
 
     public Integer getProbability() {

@@ -4,6 +4,7 @@ public class AttachmentDetailsDto {
 
     private Long attachmentId;
     private Long opportunityId;
+    private Long opportunityProgressId;
     private String originalFilename;
     private String storedFilename;
     private String contentType;
@@ -24,6 +25,14 @@ public class AttachmentDetailsDto {
 
     public void setOpportunityId(Long opportunityId) {
         this.opportunityId = opportunityId;
+    }
+
+    public Long getOpportunityProgressId() {
+        return opportunityProgressId;
+    }
+
+    public void setOpportunityProgressId(Long opportunityProgressId) {
+        this.opportunityProgressId = opportunityProgressId;
     }
 
     public String getOriginalFilename() {

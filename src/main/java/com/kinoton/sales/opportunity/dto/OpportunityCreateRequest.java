@@ -1,10 +1,11 @@
 package com.kinoton.sales.opportunity.dto;
 
 import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public class OpportunityCreateRequest {
 
@@ -14,11 +15,16 @@ public class OpportunityCreateRequest {
     @NotBlank
     private String customerName;
 
-    @NotBlank
     private String ownerName;
+
+    private Long ownerEmployeeId;
 
     @NotBlank
     private String projectName;
+
+    private String securityLevel = "GENERAL";
+
+    private List<Long> allowedUserIds;
 
     private String expectedOrderPeriod;
 
@@ -55,12 +61,36 @@ public class OpportunityCreateRequest {
         this.ownerName = ownerName;
     }
 
+    public Long getOwnerEmployeeId() {
+        return ownerEmployeeId;
+    }
+
+    public void setOwnerEmployeeId(Long ownerEmployeeId) {
+        this.ownerEmployeeId = ownerEmployeeId;
+    }
+
     public String getProjectName() {
         return projectName;
     }
 
     public void setProjectName(String projectName) {
         this.projectName = projectName;
+    }
+
+    public String getSecurityLevel() {
+        return securityLevel;
+    }
+
+    public void setSecurityLevel(String securityLevel) {
+        this.securityLevel = securityLevel;
+    }
+
+    public List<Long> getAllowedUserIds() {
+        return allowedUserIds;
+    }
+
+    public void setAllowedUserIds(List<Long> allowedUserIds) {
+        this.allowedUserIds = allowedUserIds;
     }
 
     public String getExpectedOrderPeriod() {

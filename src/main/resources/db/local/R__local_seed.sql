@@ -20,24 +20,39 @@ SET
     name = EXCLUDED.name,
     description = EXCLUDED.description;
 
-INSERT INTO probability_stages (department_id, probability, name, description, is_confirmed_revenue, display_order)
-SELECT d.department_id, stage.probability, stage.name, stage.description, stage.is_confirmed_revenue, stage.display_order
-FROM departments d
-CROSS JOIN (
-    VALUES
-        (10, '영업 시작', '영업 활동 개시 및 고객 니즈 파악 단계', FALSE, 1),
-        (30, '제안서 제출', '제안서 제출 및 기본 조건 협의 단계', FALSE, 2),
-        (60, '시방서 반영', '시방서 또는 주요 요구사항 반영 단계', FALSE, 3),
-        (90, '계약서 초안', '계약서 초안 협의 및 확정매출 집계 단계', TRUE, 4),
-        (95, '계약 확정', '계약 체결 완료 및 매출 확정 단계', TRUE, 5)
-) AS stage(probability, name, description, is_confirmed_revenue, display_order)
-ON CONFLICT (department_id, probability) DO UPDATE
+INSERT INTO probability_stages (probability, name, description, is_confirmed_revenue, display_order, is_active)
+VALUES
+    (10, '영업 시작', '영업 활동 개시 및 고객 니즈 파악 단계', FALSE, 1, TRUE),
+    (30, '제안서 제출', '제안서 제출 및 기본 조건 협의 단계', FALSE, 2, TRUE),
+    (60, '시방서 반영', '시방서 또는 주요 요구사항 반영 단계', FALSE, 3, TRUE),
+    (90, '계약서 초안', '계약서 초안 협의 및 확정매출 집계 단계', TRUE, 4, TRUE),
+    (95, '계약 확정', '계약 체결 완료 및 매출 확정 단계', TRUE, 5, TRUE)
+ON CONFLICT (probability) DO UPDATE
 SET
     name = EXCLUDED.name,
     description = EXCLUDED.description,
     is_confirmed_revenue = EXCLUDED.is_confirmed_revenue,
     display_order = EXCLUDED.display_order,
-    is_active = TRUE,
+    is_active = EXCLUDED.is_active,
+    updated_at = NOW();
+
+INSERT INTO employees (department_id, name, position_name, email, phone, is_active)
+SELECT d.department_id, employee.name, employee.position_name, employee.email, employee.phone, TRUE
+FROM (
+    VALUES
+        ('DE', '박정민', 'DE 사업본부 담당자', 'park.jm@kinoton.local', NULL),
+        ('DX', '김현우', 'Dx 사업본부 담당자', 'kim.hw@kinoton.local', NULL),
+        ('STRATEGY', '배우성', '미래전략본부 담당자', 'bae.ws@kinoton.local', NULL)
+) AS employee(department_code, name, position_name, email, phone)
+INNER JOIN departments d
+    ON d.code = employee.department_code
+ON CONFLICT (email) DO UPDATE
+SET
+    department_id = EXCLUDED.department_id,
+    name = EXCLUDED.name,
+    position_name = EXCLUDED.position_name,
+    phone = EXCLUDED.phone,
+    is_active = EXCLUDED.is_active,
     updated_at = NOW();
 
 INSERT INTO users (email, password_hash, name, is_active, is_password_reset_required)

@@ -3,6 +3,8 @@ package com.kinoton.sales.opportunity.service;
 import com.kinoton.sales.opportunity.dto.OpportunityCreateRequest;
 import com.kinoton.sales.opportunity.dto.OpportunityCreateResponse;
 import com.kinoton.sales.opportunity.dto.OpportunityDetailsResponse;
+import com.kinoton.sales.opportunity.dto.OpportunityExecutiveCommentCreateRequest;
+import com.kinoton.sales.opportunity.dto.OpportunityExecutiveCommentCreateResponse;
 import com.kinoton.sales.opportunity.dto.OpportunityListItemDto;
 import com.kinoton.sales.opportunity.dto.OpportunityListSearchCondition;
 import com.kinoton.sales.opportunity.dto.OpportunityProgressCreateRequest;
@@ -22,6 +24,13 @@ public interface OpportunityService {
     OpportunityProgressCreateResponse insertOpportunityProgress(
         Long opportunityId,
         OpportunityProgressCreateRequest request,
+        Long createdBy,
+        Authentication authentication
+    );
+
+    OpportunityExecutiveCommentCreateResponse insertOpportunityExecutiveComment(
+        Long opportunityId,
+        OpportunityExecutiveCommentCreateRequest request,
         Long createdBy,
         Authentication authentication
     );

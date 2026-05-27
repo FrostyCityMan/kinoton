@@ -10,6 +10,7 @@ public class OpportunityReportItemDto {
     private String departmentName;
     private String customerName;
     private String projectName;
+    private String securityLevel;
     private String ownerName;
     private String expectedOrderPeriod;
     private String expectedDeliveryPeriod;
@@ -57,6 +58,22 @@ public class OpportunityReportItemDto {
 
     public void setProjectName(String projectName) {
         this.projectName = projectName;
+    }
+
+    public String getSecurityLevel() {
+        return securityLevel;
+    }
+
+    public void setSecurityLevel(String securityLevel) {
+        this.securityLevel = securityLevel;
+    }
+
+    public boolean isConfidential() {
+        return "CONFIDENTIAL".equals(securityLevel);
+    }
+
+    public String getSecurityLevelName() {
+        return isConfidential() ? "보안" : "일반";
     }
 
     public String getOwnerName() {

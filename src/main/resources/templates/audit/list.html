@@ -15,7 +15,7 @@
         <section class="page-title">
             <div>
                 <h1>감사 로그</h1>
-                <p>주요 등록, 수정, 삭제 행위의 수행자와 변경 메타데이터를 조회합니다.</p>
+                <p>주요 등록, 수정, 삭제, 인증 이벤트의 수행자와 변경 메타데이터를 조회합니다.</p>
             </div>
         </section>
 
@@ -29,7 +29,9 @@
                         <option value="OPPORTUNITY_PROGRESS" th:selected="${condition.targetType == 'OPPORTUNITY_PROGRESS'}">영업 진행 기록</option>
                         <option value="PROBABILITY_STAGE_SETTING" th:selected="${condition.targetType == 'PROBABILITY_STAGE_SETTING'}">수주확률 설정</option>
                         <option value="ATTACHMENT" th:selected="${condition.targetType == 'ATTACHMENT'}">첨부파일</option>
+                        <option value="REPORT" th:selected="${condition.targetType == 'REPORT'}">보고서</option>
                         <option value="USER" th:selected="${condition.targetType == 'USER'}">회원</option>
+                        <option value="AUTH" th:selected="${condition.targetType == 'AUTH'}">접속 로그</option>
                     </select>
                 </label>
                 <label>
@@ -70,10 +72,10 @@
                 <tr th:each="auditLog : ${auditLogs}">
                     <td th:text="${#temporals.format(auditLog.createdAt, 'yyyy-MM-dd HH:mm:ss')}">2026-05-27 10:00:00</td>
                     <td>
-                        <strong th:text="${auditLog.actorName != null ? auditLog.actorName : 'SYSTEM'}">관리자</strong>
+                        <strong th:text="${auditLog.actorDisplayName}">관리자</strong>
                         <span class="muted-inline" th:text="${auditLog.actorUserId != null ? '#' + auditLog.actorUserId : ''}">#1</span>
                     </td>
-                    <td th:text="${auditLog.action}">INSERT_USER</td>
+                    <td th:text="${auditLog.actionName}">INSERT_USER</td>
                     <td>
                         <strong th:text="${auditLog.targetType}">USER</strong>
                         <span class="muted-inline" th:text="${auditLog.targetId != null ? '#' + auditLog.targetId : ''}">#1</span>

@@ -1,5 +1,6 @@
 package com.kinoton.sales.attachment.dto;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
 public class AttachmentItemDto {
@@ -7,6 +8,9 @@ public class AttachmentItemDto {
     private Long attachmentId;
     private Long opportunityId;
     private Long opportunityProgressId;
+    private LocalDate progressDate;
+    private Integer progressProbability;
+    private String progressStageName;
     private String originalFilename;
     private String contentType;
     private long fileSizeBytes;
@@ -35,6 +39,40 @@ public class AttachmentItemDto {
 
     public void setOpportunityProgressId(Long opportunityProgressId) {
         this.opportunityProgressId = opportunityProgressId;
+    }
+
+    public LocalDate getProgressDate() {
+        return progressDate;
+    }
+
+    public void setProgressDate(LocalDate progressDate) {
+        this.progressDate = progressDate;
+    }
+
+    public Integer getProgressProbability() {
+        return progressProbability;
+    }
+
+    public void setProgressProbability(Integer progressProbability) {
+        this.progressProbability = progressProbability;
+    }
+
+    public String getProgressStageName() {
+        return progressStageName;
+    }
+
+    public void setProgressStageName(String progressStageName) {
+        this.progressStageName = progressStageName;
+    }
+
+    public String getProgressLabel() {
+        if (opportunityProgressId == null) {
+            return "영업 사이트 공통 첨부";
+        }
+        String dateText = progressDate == null ? "일자 없음" : progressDate.toString();
+        String probabilityText = progressProbability == null ? "" : progressProbability + "% ";
+        String stageText = progressStageName == null ? "" : progressStageName;
+        return (dateText + " · " + probabilityText + stageText).trim();
     }
 
     public String getOriginalFilename() {
