@@ -5,11 +5,26 @@ APP_DIR="${APP_DIR:-/home/ubuntu/app}"
 ENV_FILE="${ENV_FILE:-${APP_DIR}/app.env}"
 LOG_FILE="${LOG_FILE:-${APP_DIR}/app.log}"
 
+load_env_file() {
+  while IFS= read -r line || [[ -n "${line}" ]]; do
+    line="${line%$'\r'}"
+
+    if [[ "${line}" =~ ^[[:space:]]*$ || "${line}" =~ ^[[:space:]]*# ]]; then
+      continue
+    fi
+
+    line="${line#export }"
+
+    if [[ "${line}" =~ ^[A-Za-z_][A-Za-z0-9_]*= ]]; then
+      export "${line}"
+    else
+      echo "Ignoring invalid env line in ${ENV_FILE}: ${line}" >&2
+    fi
+  done < "${ENV_FILE}"
+}
+
 if [[ -f "${ENV_FILE}" ]]; then
-  set -a
-  # shellcheck disable=SC1090
-  source "${ENV_FILE}"
-  set +a
+  load_env_file
 fi
 
 SERVER_PORT="${SERVER_PORT:-8080}"

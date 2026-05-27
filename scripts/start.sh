@@ -10,16 +10,31 @@ PID_FILE="${PID_FILE:-${APP_DIR}/app.pid}"
 
 mkdir -p "${LOG_DIR}"
 
+load_env_file() {
+  while IFS= read -r line || [[ -n "${line}" ]]; do
+    line="${line%$'\r'}"
+
+    if [[ "${line}" =~ ^[[:space:]]*$ || "${line}" =~ ^[[:space:]]*# ]]; then
+      continue
+    fi
+
+    line="${line#export }"
+
+    if [[ "${line}" =~ ^[A-Za-z_][A-Za-z0-9_]*= ]]; then
+      export "${line}"
+    else
+      echo "Ignoring invalid env line in ${ENV_FILE}: ${line}" >&2
+    fi
+  done < "${ENV_FILE}"
+}
+
 if [[ ! -f "${APP_JAR}" ]]; then
   echo "Application jar not found: ${APP_JAR}" >&2
   exit 1
 fi
 
 if [[ -f "${ENV_FILE}" ]]; then
-  set -a
-  # shellcheck disable=SC1090
-  source "${ENV_FILE}"
-  set +a
+  load_env_file
 fi
 
 if [[ -f "${PID_FILE}" ]]; then
