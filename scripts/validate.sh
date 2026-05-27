@@ -3,7 +3,7 @@ set -euo pipefail
 
 APP_DIR="${APP_DIR:-/home/ubuntu/app}"
 ENV_FILE="${ENV_FILE:-${APP_DIR}/app.env}"
-LOG_FILE="${LOG_FILE:-${APP_DIR}/logs/kinoton.log}"
+LOG_FILE="${LOG_FILE:-${APP_DIR}/app.log}"
 
 if [[ -f "${ENV_FILE}" ]]; then
   set -a

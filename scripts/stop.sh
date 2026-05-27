@@ -14,6 +14,10 @@ if [[ -f "${PID_FILE}" ]]; then
 fi
 
 if [[ -z "${PIDS}" ]]; then
+  PIDS="$(pgrep -f "java .*${APP_DIR}/app.jar" || true)"
+fi
+
+if [[ -z "${PIDS}" ]]; then
   PIDS="$(pgrep -f "java .*${APP_DIR}/kinoton.jar" || true)"
 fi
 

@@ -50,7 +50,7 @@ jobs:
           rm -rf build/codedeploy
           mkdir -p build/codedeploy/scripts
 
-          cp "$BOOT_JAR" build/codedeploy/kinoton.jar
+          cp "$BOOT_JAR" build/codedeploy/app.jar
           cp appspec.yml build/codedeploy/appspec.yml
           cp scripts/start.sh scripts/stop.sh scripts/validate.sh build/codedeploy/scripts/
           chmod +x build/codedeploy/scripts/*.sh

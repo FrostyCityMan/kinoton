@@ -2,9 +2,10 @@
 set -euo pipefail
 
 APP_DIR="${APP_DIR:-/home/ubuntu/app}"
-APP_JAR="${APP_JAR:-${APP_DIR}/kinoton.jar}"
+APP_JAR="${APP_JAR:-${APP_DIR}/app.jar}"
 ENV_FILE="${ENV_FILE:-${APP_DIR}/app.env}"
 LOG_DIR="${LOG_DIR:-${APP_DIR}/logs}"
+LOG_FILE="${LOG_FILE:-${APP_DIR}/app.log}"
 PID_FILE="${PID_FILE:-${APP_DIR}/app.pid}"
 
 mkdir -p "${LOG_DIR}"
@@ -29,7 +30,7 @@ if [[ -f "${PID_FILE}" ]]; then
   fi
 fi
 
-nohup java ${JAVA_OPTS:-} -jar "${APP_JAR}" > "${LOG_DIR}/kinoton.log" 2>&1 &
+nohup java ${JAVA_OPTS:-} -jar "${APP_JAR}" ${APP_ARGS:-} > "${LOG_FILE}" 2>&1 &
 APP_PID="$!"
 echo "${APP_PID}" > "${PID_FILE}"
 
@@ -37,7 +38,7 @@ sleep 5
 
 if ! kill -0 "${APP_PID}" 2>/dev/null; then
   echo "Application failed to start." >&2
-  tail -n 100 "${LOG_DIR}/kinoton.log" >&2 || true
+  tail -n 100 "${LOG_FILE}" >&2 || true
   exit 1
 fi
 
