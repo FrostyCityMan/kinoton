@@ -28,6 +28,16 @@ load_env_file() {
   done < "${ENV_FILE}"
 }
 
+require_env() {
+  local name="$1"
+  local value="${!name:-}"
+
+  if [[ -z "${value}" ]]; then
+    echo "Required environment variable is missing or empty: ${name}" >&2
+    exit 1
+  fi
+}
+
 if [[ ! -f "${APP_JAR}" ]]; then
   echo "Application jar not found: ${APP_JAR}" >&2
   exit 1
@@ -36,6 +46,10 @@ fi
 if [[ -f "${ENV_FILE}" ]]; then
   load_env_file
 fi
+
+require_env "DB_URL"
+require_env "DB_USERNAME"
+require_env "DB_PASSWORD"
 
 if [[ -f "${PID_FILE}" ]]; then
   OLD_PID="$(cat "${PID_FILE}")"
