@@ -1,0 +1,92 @@
+name: Deploy dev
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  APP_NAME: kinoton
+  DEPLOY_ENV: dev
+  DEPLOY_BUNDLE: kinoton-dev-${{ github.sha }}.zip
+  DEPLOY_KEY: kinoton/dev/${{ github.sha }}.zip
+
+jobs:
+  deploy:
+    name: Build and deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Build
+        run: |
+          chmod +x ./gradlew
+          ./gradlew clean test bootJar --console=plain
+
+      - name: Package CodeDeploy bundle
+        run: |
+          set -euo pipefail
+          BOOT_JAR="$(find build/libs -maxdepth 1 -type f -name '*.jar' ! -name '*-plain.jar' | sort | head -n 1)"
+          if [ -z "$BOOT_JAR" ]; then
+            echo "No Spring Boot jar found under build/libs." >&2
+            exit 1
+          fi
+
+          rm -rf build/codedeploy
+          mkdir -p build/codedeploy/scripts
+
+          cp "$BOOT_JAR" build/codedeploy/kinoton.jar
+          cp appspec.yml build/codedeploy/appspec.yml
+          cp scripts/start.sh scripts/stop.sh scripts/validate.sh build/codedeploy/scripts/
+          chmod +x build/codedeploy/scripts/*.sh
+
+          cd build/codedeploy
+          zip -r "../${DEPLOY_BUNDLE}" .
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_GITHUB_ACTIONS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Upload bundle to S3
+        run: |
+          aws s3 cp "build/${DEPLOY_BUNDLE}" "s3://${{ vars.AWS_DEPLOY_BUCKET }}/${DEPLOY_KEY}"
+
+      - name: Create CodeDeploy deployment
+        id: deploy
+        run: |
+          DEPLOYMENT_ID="$(aws deploy create-deployment \
+            --application-name "${{ vars.AWS_CODEDEPLOY_APPLICATION }}" \
+            --deployment-group-name "${{ vars.AWS_CODEDEPLOY_DEPLOYMENT_GROUP }}" \
+            --description "kinoton dev ${GITHUB_SHA}" \
+            --s3-location bucket=${{ vars.AWS_DEPLOY_BUCKET }},key=${DEPLOY_KEY},bundleType=zip \
+            --file-exists-behavior OVERWRITE \
+            --query deploymentId \
+            --output text)"
+
+          echo "deployment-id=${DEPLOYMENT_ID}" >> "$GITHUB_OUTPUT"
+          echo "Deployment ID: ${DEPLOYMENT_ID}"
+
+      - name: Wait for deployment
+        run: |
+          aws deploy wait deployment-successful --deployment-id "${{ steps.deploy.outputs.deployment-id }}"
+          aws deploy get-deployment \
+            --deployment-id "${{ steps.deploy.outputs.deployment-id }}" \
+            --query 'deploymentInfo.{status:status,creator:creator,createTime:createTime,completeTime:completeTime}' \
+            --output table

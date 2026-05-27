@@ -28,6 +28,12 @@ mybatis:
   configuration:
     map-underscore-to-camel-case: true
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
 app:
   storage:
     root: ${STORAGE_ROOT:./storage}
