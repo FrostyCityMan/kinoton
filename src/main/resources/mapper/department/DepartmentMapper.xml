@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kinoton.sales.department.dao.DepartmentDao">
+    <resultMap id="DepartmentListItemMap" type="com.kinoton.sales.department.dto.DepartmentListItemDto">
+        <id property="departmentId" column="department_id"/>
+        <result property="code" column="code"/>
+        <result property="name" column="name"/>
+        <result property="displayOrder" column="display_order"/>
+        <result property="active" column="is_active"/>
+        <result property="opportunityCount" column="opportunity_count"/>
+        <result property="employeeCount" column="employee_count"/>
+        <result property="userPermissionCount" column="user_permission_count"/>
+    </resultMap>
+
+    <sql id="DepartmentUsageColumns">
+        COALESCE(oc.opportunity_count, 0) AS opportunity_count,
+        COALESCE(ec.employee_count, 0) AS employee_count,
+        COALESCE(upc.user_permission_count, 0) AS user_permission_count
+    </sql>
+
+    <sql id="DepartmentUsageJoins">
+        LEFT JOIN (
+            SELECT
+                o.department_id,
+                COUNT(1) AS opportunity_count
+            FROM opportunities o
+            GROUP BY o.department_id
+        ) oc
+            ON oc.department_id = d.department_id
+        LEFT JOIN (
+            SELECT
+                e.department_id,
+                COUNT(1) AS employee_count
+            FROM employees e
+            GROUP BY e.department_id
+        ) ec
+            ON ec.department_id = d.department_id
+        LEFT JOIN (
+            SELECT
+                udp.department_id,
+                COUNT(DISTINCT udp.user_id) AS user_permission_count
+            FROM user_department_permissions udp
+            GROUP BY udp.department_id
+        ) upc
+            ON upc.department_id = d.department_id
+    </sql>
+
+    <select id="selectDepartmentList" resultMap="DepartmentListItemMap">
+        -- 사업본부 관리 목록과 참조 건수를 조회한다.
+        SELECT
+            d.department_id,
+            d.code,
+            d.name,
+            d.display_order,
+            d.is_active,
+            <include refid="DepartmentUsageColumns"/>
+        FROM departments d
+        <include refid="DepartmentUsageJoins"/>
+        ORDER BY d.is_active DESC, d.display_order, d.department_id
+    </select>
+
+    <select id="selectDepartmentDetails" parameterType="long" resultMap="DepartmentListItemMap">
+        -- 사업본부 단건 상세와 참조 건수를 조회한다.
+        SELECT
+            d.department_id,
+            d.code,
+            d.name,
+            d.display_order,
+            d.is_active,
+            <include refid="DepartmentUsageColumns"/>
+        FROM departments d
+        <include refid="DepartmentUsageJoins"/>
+        WHERE d.department_id = #{departmentId}
+    </select>
+
+    <select id="selectDepartmentIdByCode" parameterType="string" resultType="long">
+        -- 사업본부 코드 중복 여부를 조회한다.
+        SELECT
+            d.department_id
+        FROM departments d
+        WHERE d.code = #{code}
+    </select>
+
+    <select id="selectActiveDepartmentCount" resultType="int">
+        -- 활성 사업본부 수를 조회한다.
+        SELECT
+            COUNT(1)
+        FROM departments d
+        WHERE d.is_active = TRUE
+    </select>
+
+    <insert id="insertDepartment"
+            parameterType="com.kinoton.sales.department.dto.DepartmentCommandDto"
+            useGeneratedKeys="true"
+            keyProperty="departmentId"
+            keyColumn="department_id">
+        -- 신규 사업본부를 등록한다.
+        INSERT INTO departments (
+            code,
+            name,
+            display_order,
+            is_active
+        )
+        VALUES (
+            #{code},
+            #{name},
+            #{displayOrder},
+            #{active}
+        )
+    </insert>
+
+    <update id="updateDepartment"
+            parameterType="com.kinoton.sales.department.dto.DepartmentCommandDto">
+        -- 사업본부 기본 정보를 수정한다.
+        UPDATE departments
+        SET
+            code = #{code},
+            name = #{name},
+            display_order = #{displayOrder},
+            is_active = #{active},
+            updated_at = NOW()
+        WHERE department_id = #{departmentId}
+    </update>
+
+    <update id="deleteDepartment" parameterType="long">
+        -- 사업본부를 비활성화한다.
+        UPDATE departments
+        SET
+            is_active = FALSE,
+            updated_at = NOW()
+        WHERE department_id = #{departmentId}
+    </update>
+</mapper>

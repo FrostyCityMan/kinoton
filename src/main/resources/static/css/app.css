@@ -967,6 +967,17 @@ a {
     margin-top: 18px;
 }
 
+.table-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.table-actions form {
+    margin: 0;
+}
+
 .report-export-actions {
     display: flex;
     flex-wrap: wrap;

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kinoton 사업본부 수정</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div class="app-shell">
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <main class="content">
+        <header th:replace="~{fragments/layout :: header}"></header>
+
+        <nav class="breadcrumb" aria-label="경로">
+            <a th:href="@{/departments}">사업본부 관리</a>
+            <span th:text="${department.name}">DE 사업본부</span>
+        </nav>
+
+        <section class="page-title">
+            <div>
+                <h1 th:text="${department.name}">사업본부</h1>
+                <p th:text="${department.code}">DE</p>
+            </div>
+        </section>
+
+        <p th:if="${message}" class="form-message" th:text="${message}">저장되었습니다.</p>
+        <p th:if="${errorMessage}" class="form-error" th:text="${errorMessage}">처리 오류</p>
+
+        <section class="management-panel">
+            <h2>사업본부 수정</h2>
+            <form th:action="@{/departments/{id}(id=${department.departmentId})}" th:object="${updateRequest}" method="post" class="management-form">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                <div class="form-grid">
+                    <label>
+                        <span>사업본부 코드</span>
+                        <input type="text" th:field="*{code}" required>
+                    </label>
+                    <label>
+                        <span>사업본부명</span>
+                        <input type="text" th:field="*{name}" required>
+                    </label>
+                    <label>
+                        <span>정렬순서</span>
+                        <input type="number" th:field="*{displayOrder}" min="0" required>
+                    </label>
+                </div>
+
+                <div class="checkbox-grid">
+                    <label class="inline-check">
+                        <input type="checkbox" th:field="*{active}">
+                        <span>활성</span>
+                    </label>
+                </div>
+
+                <div class="permission-section">
+                    <h3>참조 현황</h3>
+                    <div class="checkbox-grid">
+                        <span class="summary-chip" th:text="'영업 사이트 ' + ${department.opportunityCount} + '건'">영업 사이트 0건</span>
+                        <span class="summary-chip" th:text="'직원 ' + ${department.employeeCount} + '명'">직원 0명</span>
+                        <span class="summary-chip" th:text="'회원 권한 ' + ${department.userPermissionCount} + '건'">회원 권한 0건</span>
+                    </div>
+                    <p class="helper-text">비활성화해도 기존 영업 사이트와 이력은 유지됩니다. 신규 영업 사이트, 직원, 권한 선택 목록에서는 제외됩니다.</p>
+                </div>
+
+                <div class="settings-actions">
+                    <a class="secondary-action" th:href="@{/departments}">목록</a>
+                    <button type="submit" class="primary-action">저장</button>
+                </div>
+            </form>
+        </section>
+
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </main>
+</div>
+</body>
+</html>

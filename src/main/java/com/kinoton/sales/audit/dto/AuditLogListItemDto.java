@@ -137,6 +137,15 @@ public class AuditLogListItemDto {
         if ("DOWNLOAD_REPORT_PDF".equals(action)) {
             return "PDF 다운로드";
         }
+        if ("INSERT_DEPARTMENT".equals(action)) {
+            return "사업본부 등록";
+        }
+        if ("UPDATE_DEPARTMENT".equals(action)) {
+            return "사업본부 수정";
+        }
+        if ("DELETE_DEPARTMENT".equals(action)) {
+            return "사업본부 삭제";
+        }
         return action;
     }
 

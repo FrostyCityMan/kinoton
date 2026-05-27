@@ -27,6 +27,7 @@
                         <option value="">전체</option>
                         <option value="OPPORTUNITY" th:selected="${condition.targetType == 'OPPORTUNITY'}">영업 사이트</option>
                         <option value="OPPORTUNITY_PROGRESS" th:selected="${condition.targetType == 'OPPORTUNITY_PROGRESS'}">영업 진행 기록</option>
+                        <option value="DEPARTMENT" th:selected="${condition.targetType == 'DEPARTMENT'}">사업본부</option>
                         <option value="PROBABILITY_STAGE_SETTING" th:selected="${condition.targetType == 'PROBABILITY_STAGE_SETTING'}">수주확률 설정</option>
                         <option value="ATTACHMENT" th:selected="${condition.targetType == 'ATTACHMENT'}">첨부파일</option>
                         <option value="REPORT" th:selected="${condition.targetType == 'REPORT'}">보고서</option>
