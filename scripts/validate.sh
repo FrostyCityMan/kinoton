@@ -4,6 +4,7 @@ set -euo pipefail
 APP_DIR="${APP_DIR:-/home/ubuntu/app}"
 ENV_FILE="${ENV_FILE:-${APP_DIR}/app.env}"
 LOG_FILE="${LOG_FILE:-${APP_DIR}/app.log}"
+PID_FILE="${PID_FILE:-${APP_DIR}/app.pid}"
 
 load_env_file() {
   while IFS= read -r line || [[ -n "${line}" ]]; do
@@ -37,6 +38,15 @@ for _ in $(seq 1 60); do
     if grep -q '"status":"UP"' "${HEALTH_OUTPUT}"; then
       echo "Health check passed: ${HEALTH_URL}"
       exit 0
+    fi
+  fi
+
+  if [[ -f "${PID_FILE}" ]]; then
+    APP_PID="$(cat "${PID_FILE}")"
+    if [[ -n "${APP_PID}" ]] && ! kill -0 "${APP_PID}" 2>/dev/null; then
+      echo "Application process is not running. PID file: ${PID_FILE}" >&2
+      tail -n 120 "${LOG_FILE}" >&2 2>/dev/null || true
+      exit 1
     fi
   fi
 

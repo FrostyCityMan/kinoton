@@ -198,7 +198,7 @@ jobs:
                   "echo PORTS",
                   "ss -ltnp | grep 8080 || true",
                   "echo HEALTH",
-                  "if [ -f /home/ubuntu/app/app.env ]; then set -a; . /home/ubuntu/app/app.env; set +a; fi; curl -i http://127.0.0.1:${SERVER_PORT:-8080}/actuator/health || true",
+                  "SERVER_PORT_VALUE=$(awk -F= '\''/^SERVER_PORT=/ {print $2; exit}'\'' /home/ubuntu/app/app.env 2>/dev/null); SERVER_PORT_VALUE=${SERVER_PORT_VALUE:-8080}; curl -i http://127.0.0.1:${SERVER_PORT_VALUE}/actuator/health || true",
                   "echo APP_LOG",
                   "tail -n 160 /home/ubuntu/app/app.log || true",
                   "echo CODEDEPLOY_AGENT_LOG",
@@ -241,7 +241,7 @@ jobs:
                 "echo PORTS",
                 "ss -ltnp | grep 8080 || true",
                 "echo HEALTH",
-                "if [ -f /home/ubuntu/app/app.env ]; then set -a; . /home/ubuntu/app/app.env; set +a; fi; curl -i http://127.0.0.1:${SERVER_PORT:-8080}/actuator/health || true",
+                "SERVER_PORT_VALUE=$(awk -F= '\''/^SERVER_PORT=/ {print $2; exit}'\'' /home/ubuntu/app/app.env 2>/dev/null); SERVER_PORT_VALUE=${SERVER_PORT_VALUE:-8080}; curl -i http://127.0.0.1:${SERVER_PORT_VALUE}/actuator/health || true",
                 "echo APP_LOG",
                 "tail -n 80 /home/ubuntu/app/app.log || true"
               ]' \
