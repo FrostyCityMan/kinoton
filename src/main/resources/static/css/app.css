@@ -1102,7 +1102,49 @@ a {
 }
 
 .audit-table-panel table {
-    min-width: 1360px;
+    min-width: 2040px;
+    table-layout: fixed;
+    width: 2040px;
+}
+
+.audit-table-panel th:nth-child(1),
+.audit-table-panel td:nth-child(1) {
+    width: 170px;
+    white-space: nowrap;
+}
+
+.audit-table-panel th:nth-child(2),
+.audit-table-panel td:nth-child(2) {
+    width: 150px;
+    white-space: nowrap;
+}
+
+.audit-table-panel th:nth-child(3),
+.audit-table-panel td:nth-child(3) {
+    width: 180px;
+    white-space: nowrap;
+}
+
+.audit-table-panel th:nth-child(4),
+.audit-table-panel td:nth-child(4) {
+    width: 190px;
+    white-space: nowrap;
+}
+
+.audit-table-panel th:nth-child(5),
+.audit-table-panel td:nth-child(5) {
+    width: 180px;
+    white-space: nowrap;
+}
+
+.audit-table-panel th:nth-child(6),
+.audit-table-panel td:nth-child(6) {
+    width: 540px;
+}
+
+.audit-table-panel th:nth-child(7),
+.audit-table-panel td:nth-child(7) {
+    width: 630px;
 }
 
 .access-table-panel table {
