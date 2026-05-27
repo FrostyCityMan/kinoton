@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kinoton.sales.user.dao.UserDao">
+    <resultMap id="AuthUserMap" type="com.kinoton.sales.user.dto.AuthUserDto">
+        <id property="userId" column="user_id"/>
+        <result property="email" column="email"/>
+        <result property="passwordHash" column="password_hash"/>
+        <result property="name" column="name"/>
+        <result property="active" column="is_active"/>
+        <result property="passwordResetRequired" column="is_password_reset_required"/>
+    </resultMap>
+
+    <resultMap id="DepartmentPermissionMap" type="com.kinoton.sales.user.dto.DepartmentPermissionDto">
+        <id property="departmentCode" column="department_code"/>
+        <result property="canRead" column="can_read"/>
+        <result property="canWrite" column="can_write"/>
+    </resultMap>
+
+    <select id="selectUserByEmail" parameterType="string" resultMap="AuthUserMap">
+        -- 이메일 기준 로그인 사용자를 조회한다.
+        SELECT
+            u.user_id,
+            u.email,
+            u.password_hash,
+            u.name,
+            u.is_active,
+            u.is_password_reset_required
+        FROM users u
+        WHERE u.email = #{email}
+    </select>
+
+    <select id="selectRoleCodeListByUserId" parameterType="long" resultType="string">
+        -- 사용자에게 부여된 역할 코드를 조회한다.
+        SELECT
+            r.code
+        FROM user_roles ur
+        INNER JOIN roles r
+            ON r.role_id = ur.role_id
+        WHERE ur.user_id = #{userId}
+        ORDER BY r.code
+    </select>
+
+    <select id="selectDepartmentPermissionListByUserId" parameterType="long" resultMap="DepartmentPermissionMap">
+        -- 사용자에게 부여된 본부별 읽기/쓰기 권한을 조회한다.
+        SELECT
+            d.code AS department_code,
+            udp.can_read,
+            udp.can_write
+        FROM user_department_permissions udp
+        INNER JOIN departments d
+            ON d.department_id = udp.department_id
+        WHERE udp.user_id = #{userId}
+          AND d.is_active = TRUE
+        ORDER BY d.display_order, d.department_id
+    </select>
+</mapper>

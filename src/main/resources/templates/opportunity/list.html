@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kinoton 영업 사이트 리스트</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div class="app-shell">
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <main class="content">
+        <header th:replace="~{fragments/layout :: header}"></header>
+
+        <section class="page-title">
+            <div>
+                <h1>영업 사이트 리스트</h1>
+                <p>사업본부와 상태 기준으로 영업 건을 확인합니다.</p>
+            </div>
+            <a class="primary-action" th:href="@{/opportunities/new}">+ 신규 등록</a>
+        </section>
+
+        <p th:if="${message}" class="form-message" th:text="${message}">처리되었습니다.</p>
+
+        <section class="table-panel">
+            <table>
+                <thead>
+                <tr>
+                    <th>사업본부</th>
+                    <th>고객사명</th>
+                    <th>사업명</th>
+                    <th>예상발주</th>
+                    <th>구축시기</th>
+                    <th>사업총액</th>
+                    <th>담당자</th>
+                    <th>상태</th>
+                    <th>수주확률</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="opportunity : ${opportunities}">
+                    <td th:text="${opportunity.departmentName}">DE 사업본부</td>
+                    <td th:text="${opportunity.customerName}">고객사</td>
+                    <td>
+                        <a class="table-link"
+                           th:href="@{/opportunities/{id}(id=${opportunity.opportunityId})}"
+                           th:text="${opportunity.projectName}">사업명</a>
+                    </td>
+                    <td th:text="${opportunity.expectedOrderPeriod}">2026 4Q</td>
+                    <td th:text="${opportunity.expectedDeliveryPeriod}">2027 2Q</td>
+                    <td th:text="${opportunity.projectAmount} + '억원'">0억원</td>
+                    <td th:text="${opportunity.ownerName}">담당자</td>
+                    <td th:switch="${opportunity.status}">
+                        <span th:case="'IN_PROGRESS'">진행중</span>
+                        <span th:case="'WON'">수주완료</span>
+                        <span th:case="'HOLD'">보류</span>
+                        <span th:case="'LOST'">실주</span>
+                        <span th:case="*" th:text="${opportunity.status}">상태</span>
+                    </td>
+                    <td>
+                        <span class="stage-chip"
+                              th:text="${opportunity.probability + '% ' + opportunity.probabilityStageName}">
+                            10% 영업 시작
+                        </span>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(opportunities)}">
+                    <td colspan="9" class="empty-cell">등록된 영업 사이트가 없습니다.</td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </main>
+</div>
+</body>
+</html>

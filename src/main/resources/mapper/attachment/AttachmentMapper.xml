@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kinoton.sales.attachment.dao.AttachmentDao">
+    <resultMap id="AttachmentItemMap" type="com.kinoton.sales.attachment.dto.AttachmentItemDto">
+        <id property="attachmentId" column="attachment_id"/>
+        <result property="opportunityId" column="opportunity_id"/>
+        <result property="opportunityProgressId" column="opportunity_progress_id"/>
+        <result property="originalFilename" column="original_filename"/>
+        <result property="contentType" column="content_type"/>
+        <result property="fileSizeBytes" column="file_size_bytes"/>
+        <result property="uploadedByName" column="uploaded_by_name"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <resultMap id="AttachmentDetailsMap" type="com.kinoton.sales.attachment.dto.AttachmentDetailsDto">
+        <id property="attachmentId" column="attachment_id"/>
+        <result property="opportunityId" column="opportunity_id"/>
+        <result property="originalFilename" column="original_filename"/>
+        <result property="storedFilename" column="stored_filename"/>
+        <result property="contentType" column="content_type"/>
+        <result property="fileSizeBytes" column="file_size_bytes"/>
+        <result property="storagePath" column="storage_path"/>
+    </resultMap>
+
+    <select id="selectAttachmentListByOpportunityId" parameterType="long" resultMap="AttachmentItemMap">
+        -- 영업 사이트에 연결된 첨부파일 목록을 조회한다.
+        SELECT
+            a.attachment_id,
+            a.opportunity_id,
+            a.opportunity_progress_id,
+            a.original_filename,
+            a.content_type,
+            a.file_size_bytes,
+            u.name AS uploaded_by_name,
+            a.created_at
+        FROM attachments a
+        LEFT JOIN users u
+            ON u.user_id = a.uploaded_by
+        WHERE a.opportunity_id = #{opportunityId}
+        ORDER BY a.created_at DESC, a.attachment_id DESC
+    </select>
+
+    <select id="selectAttachmentDetails"
+            parameterType="com.kinoton.sales.attachment.dto.AttachmentLookupCondition"
+            resultMap="AttachmentDetailsMap">
+        -- 다운로드 또는 삭제 대상 첨부파일 상세 정보를 조회한다.
+        SELECT
+            a.attachment_id,
+            a.opportunity_id,
+            a.original_filename,
+            a.stored_filename,
+            a.content_type,
+            a.file_size_bytes,
+            a.storage_path
+        FROM attachments a
+        WHERE a.opportunity_id = #{opportunityId}
+          AND a.attachment_id = #{attachmentId}
+    </select>
+
+    <insert id="insertAttachment"
+            parameterType="com.kinoton.sales.attachment.dto.AttachmentCreateCommandDto"
+            useGeneratedKeys="true"
+            keyProperty="attachmentId"
+            keyColumn="attachment_id">
+        -- 업로드된 첨부파일 메타데이터를 등록한다.
+        INSERT INTO attachments (
+            opportunity_id,
+            opportunity_progress_id,
+            original_filename,
+            stored_filename,
+            content_type,
+            file_size_bytes,
+            storage_path,
+            uploaded_by
+        )
+        VALUES (
+            #{opportunityId},
+            #{opportunityProgressId},
+            #{originalFilename},
+            #{storedFilename},
+            #{contentType},
+            #{fileSizeBytes},
+            #{storagePath},
+            #{uploadedBy}
+        )
+    </insert>
+
+    <delete id="deleteAttachment" parameterType="com.kinoton.sales.attachment.dto.AttachmentLookupCondition">
+        -- 첨부파일 메타데이터를 삭제한다.
+        DELETE FROM attachments
+        WHERE opportunity_id = #{opportunityId}
+          AND attachment_id = #{attachmentId}
+    </delete>
+</mapper>

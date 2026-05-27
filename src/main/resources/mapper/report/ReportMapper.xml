@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kinoton.sales.report.dao.ReportDao">
+    <resultMap id="ReportDepartmentOptionMap" type="com.kinoton.sales.report.dto.ReportDepartmentOptionDto">
+        <id property="code" column="code"/>
+        <result property="name" column="name"/>
+    </resultMap>
+
+    <resultMap id="OpportunityReportItemMap" type="com.kinoton.sales.report.dto.OpportunityReportItemDto">
+        <id property="opportunityId" column="opportunity_id"/>
+        <result property="departmentCode" column="department_code"/>
+        <result property="departmentName" column="department_name"/>
+        <result property="customerName" column="customer_name"/>
+        <result property="projectName" column="project_name"/>
+        <result property="ownerName" column="owner_name"/>
+        <result property="expectedOrderPeriod" column="expected_order_period"/>
+        <result property="expectedDeliveryPeriod" column="expected_delivery_period"/>
+        <result property="projectAmount" column="project_amount"/>
+        <result property="status" column="status"/>
+        <result property="probability" column="probability"/>
+        <result property="probabilityStageName" column="probability_stage_name"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <select id="selectReportDepartmentOptionList"
+            parameterType="com.kinoton.sales.security.dto.DepartmentAccessScope"
+            resultMap="ReportDepartmentOptionMap">
+        -- 보고서 필터에서 선택 가능한 사업본부 목록을 권한 범위 기준으로 조회한다.
+        SELECT
+            d.code,
+            d.name
+        FROM departments d
+        WHERE d.is_active = TRUE
+        <choose>
+            <when test="allDepartments">
+            </when>
+            <when test="departmentCodes != null and departmentCodes.size() > 0">
+                AND d.code IN
+                <foreach collection="departmentCodes" item="departmentCode" open="(" separator="," close=")">
+                    #{departmentCode}
+                </foreach>
+            </when>
+            <otherwise>
+                AND 1 = 0
+            </otherwise>
+        </choose>
+        ORDER BY d.display_order, d.department_id
+    </select>
+
+    <select id="selectOpportunityReportItemList"
+            parameterType="com.kinoton.sales.report.dto.ReportSearchCondition"
+            resultMap="OpportunityReportItemMap">
+        -- 영업 보고서 행 데이터를 검색 조건과 권한 범위에 따라 조회한다.
+        SELECT
+            o.opportunity_id,
+            d.code AS department_code,
+            d.name AS department_name,
+            o.customer_name,
+            o.project_name,
+            o.owner_name,
+            o.expected_order_period,
+            o.expected_delivery_period,
+            o.project_amount,
+            o.status,
+            ps.probability,
+            ps.name AS probability_stage_name,
+            o.created_at
+        FROM opportunities o
+        INNER JOIN departments d
+            ON d.department_id = o.department_id
+        INNER JOIN probability_stages ps
+            ON ps.probability_stage_id = o.probability_stage_id
+        <where>
+            <choose>
+                <when test="allDepartments">
+                </when>
+                <when test="departmentCodes != null and departmentCodes.size() > 0">
+                    AND d.code IN
+                    <foreach collection="departmentCodes" item="accessDepartmentCode" open="(" separator="," close=")">
+                        #{accessDepartmentCode}
+                    </foreach>
+                </when>
+                <otherwise>
+                    AND 1 = 0
+                </otherwise>
+            </choose>
+            <if test="departmentCode != null and departmentCode != ''">
+                AND d.code = #{departmentCode}
+            </if>
+            <if test="status != null and status != ''">
+                AND o.status = #{status}
+            </if>
+        </where>
+        ORDER BY d.display_order, o.created_at DESC, o.opportunity_id DESC
+    </select>
+</mapper>

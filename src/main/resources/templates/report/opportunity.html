@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <title>Kinoton 영업 보고서</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div class="app-shell">
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <main class="content">
+        <header th:replace="~{fragments/layout :: header}"></header>
+
+        <section class="page-title">
+            <div>
+                <h1>영업 보고서</h1>
+                <p>권한 범위 안의 영업 현황을 화면, Excel, PDF로 출력합니다.</p>
+            </div>
+            <div class="report-export-actions">
+                <a th:href="@{/reports/opportunities/excel(departmentCode=${condition.departmentCode}, status=${condition.status})}">Excel 다운로드</a>
+                <a th:href="@{/reports/opportunities/pdf(departmentCode=${condition.departmentCode}, status=${condition.status})}">PDF 다운로드</a>
+            </div>
+        </section>
+
+        <section class="report-filter-panel">
+            <form th:action="@{/reports}" method="get" class="report-filter-form">
+                <label>
+                    <span>사업본부</span>
+                    <select name="departmentCode">
+                        <option value="">전체</option>
+                        <option th:each="department : ${departments}"
+                                th:value="${department.code}"
+                                th:text="${department.name}"
+                                th:selected="${department.code == condition.departmentCode}">
+                            DE 사업본부
+                        </option>
+                    </select>
+                </label>
+                <label>
+                    <span>상태</span>
+                    <select name="status">
+                        <option value="">전체</option>
+                        <option value="IN_PROGRESS" th:selected="${condition.status == 'IN_PROGRESS'}">진행중</option>
+                        <option value="WON" th:selected="${condition.status == 'WON'}">수주완료</option>
+                        <option value="HOLD" th:selected="${condition.status == 'HOLD'}">보류</option>
+                        <option value="LOST" th:selected="${condition.status == 'LOST'}">실주</option>
+                    </select>
+                </label>
+                <button type="submit">조회</button>
+            </form>
+        </section>
+
+        <section class="metric-grid" aria-label="보고서 요약">
+            <article class="metric-card">
+                <span>보고서 건수</span>
+                <strong th:text="${summary.totalCount} + '건'">0건</strong>
+            </article>
+            <article class="metric-card">
+                <span>사업총액</span>
+                <strong th:text="${summary.totalProjectAmount} + '억원'">0억원</strong>
+            </article>
+            <article class="metric-card">
+                <span>확정매출</span>
+                <strong th:text="${summary.confirmedRevenueAmount} + '억원'">0억원</strong>
+            </article>
+            <article class="metric-card">
+                <span>기대매출</span>
+                <strong th:text="${summary.expectedRevenueAmount} + '억원'">0억원</strong>
+            </article>
+        </section>
+
+        <section class="status-strip" aria-label="보류 실주 요약">
+            <span>보류·실주</span>
+            <strong th:text="${summary.holdLostCount} + '건'">0건</strong>
+            <span th:text="${summary.holdLostAmount} + '억원'">0억원</span>
+            <small>사업총액, 확정매출, 기대매출 집계에서 제외</small>
+        </section>
+
+        <section class="table-panel report-table-panel">
+            <table>
+                <thead>
+                <tr>
+                    <th>사업본부</th>
+                    <th>고객사명</th>
+                    <th>사업명</th>
+                    <th>담당자</th>
+                    <th>예상발주</th>
+                    <th>구축시기</th>
+                    <th>사업총액</th>
+                    <th>상태</th>
+                    <th>수주확률</th>
+                    <th>매출구분</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="item : ${items}">
+                    <td th:text="${item.departmentName}">DE 사업본부</td>
+                    <td th:text="${item.customerName}">고객사</td>
+                    <td>
+                        <a class="table-link" th:href="@{/opportunities/{id}(id=${item.opportunityId})}" th:text="${item.projectName}">사업명</a>
+                    </td>
+                    <td th:text="${item.ownerName}">담당자</td>
+                    <td th:text="${item.expectedOrderPeriod}">2026 4Q</td>
+                    <td th:text="${item.expectedDeliveryPeriod}">2027 2Q</td>
+                    <td th:text="${item.projectAmount} + '억원'">0억원</td>
+                    <td th:switch="${item.status}">
+                        <span th:case="'IN_PROGRESS'">진행중</span>
+                        <span th:case="'WON'">수주완료</span>
+                        <span th:case="'HOLD'">보류</span>
+                        <span th:case="'LOST'">실주</span>
+                        <span th:case="*" th:text="${item.status}">상태</span>
+                    </td>
+                    <td>
+                        <span class="stage-chip" th:text="${item.probability + '% ' + item.probabilityStageName}">10% 영업 시작</span>
+                    </td>
+                    <td th:text="${item.revenueCategory}">기대매출</td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(items)}">
+                    <td colspan="10" class="empty-cell">보고서에 표시할 영업 사이트가 없습니다.</td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </main>
+</div>
+</body>
+</html>

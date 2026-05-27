@@ -1,0 +1,35 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: kinoton
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/kinoton}
+    username: ${DB_USERNAME:kinoton}
+    password: ${DB_PASSWORD:kinoton}
+    driver-class-name: org.postgresql.Driver
+  servlet:
+    multipart:
+      max-file-size: ${MAX_FILE_SIZE:20MB}
+      max-request-size: ${MAX_REQUEST_SIZE:25MB}
+  flyway:
+    enabled: true
+    encoding: UTF-8
+    locations: classpath:db/migration
+    ignore-migration-patterns:
+      - repeatable:missing
+  thymeleaf:
+    cache: false
+
+mybatis:
+  mapper-locations: classpath:/mapper/**/*.xml
+  type-aliases-package: com.kinoton.sales
+  configuration:
+    map-underscore-to-camel-case: true
+
+app:
+  storage:
+    root: ${STORAGE_ROOT:./storage}
+    max-file-size-bytes: ${STORAGE_MAX_FILE_SIZE_BYTES:20971520}
+    allowed-extensions: ${STORAGE_ALLOWED_EXTENSIONS:pdf,doc,docx,xls,xlsx,ppt,pptx,hwp,hwpx,png,jpg,jpeg,txt,csv}

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kinoton.sales.audit.dao.AuditLogDao">
+    <resultMap id="AuditLogListItemMap" type="com.kinoton.sales.audit.dto.AuditLogListItemDto">
+        <id property="auditLogId" column="audit_log_id"/>
+        <result property="actorUserId" column="actor_user_id"/>
+        <result property="actorName" column="actor_name"/>
+        <result property="targetType" column="target_type"/>
+        <result property="targetId" column="target_id"/>
+        <result property="action" column="action"/>
+        <result property="beforeData" column="before_data"/>
+        <result property="afterData" column="after_data"/>
+        <result property="ipAddress" column="ip_address"/>
+        <result property="userAgent" column="user_agent"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <insert id="insertAuditLog" parameterType="com.kinoton.sales.audit.dto.AuditLogCreateCommandDto">
+        -- 사용자 변경 행위를 감사 로그로 기록한다.
+        INSERT INTO audit_logs (
+            actor_user_id,
+            target_type,
+            target_id,
+            action,
+            before_data,
+            after_data,
+            ip_address,
+            user_agent
+        )
+        VALUES (
+            #{actorUserId},
+            #{targetType},
+            #{targetId},
+            #{action},
+            <choose>
+                <when test="beforeData != null">CAST(#{beforeData} AS jsonb)</when>
+                <otherwise>NULL</otherwise>
+            </choose>,
+            <choose>
+                <when test="afterData != null">CAST(#{afterData} AS jsonb)</when>
+                <otherwise>NULL</otherwise>
+            </choose>,
+            #{ipAddress},
+            #{userAgent}
+        )
+    </insert>
+
+    <select id="selectAuditLogList"
+            parameterType="com.kinoton.sales.audit.dto.AuditLogSearchCondition"
+            resultMap="AuditLogListItemMap">
+        -- 관리자 감사 로그 화면에 표시할 변경 이력을 조회한다.
+        SELECT
+            al.audit_log_id,
+            al.actor_user_id,
+            u.name AS actor_name,
+            al.target_type,
+            al.target_id,
+            al.action,
+            al.before_data::text AS before_data,
+            al.after_data::text AS after_data,
+            al.ip_address,
+            al.user_agent,
+            al.created_at
+        FROM audit_logs al
+        LEFT JOIN users u
+            ON u.user_id = al.actor_user_id
+        <where>
+            <if test="targetType != null and targetType != ''">
+                AND al.target_type = #{targetType}
+            </if>
+            <if test="action != null and action != ''">
+                AND al.action = #{action}
+            </if>
+            <if test="actorUserId != null">
+                AND al.actor_user_id = #{actorUserId}
+            </if>
+        </where>
+        ORDER BY al.created_at DESC, al.audit_log_id DESC
+        LIMIT #{limit}
+    </select>
+</mapper>

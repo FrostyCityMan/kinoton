@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kinoton.sales.opportunity.dao.OpportunityDao">
+    <resultMap id="ProbabilityStageSimpleMap" type="com.kinoton.sales.opportunity.dto.ProbabilityStageSimpleDto">
+        <id property="probabilityStageId" column="probability_stage_id"/>
+        <result property="probability" column="probability"/>
+        <result property="name" column="name"/>
+    </resultMap>
+
+    <resultMap id="OpportunityListItemMap" type="com.kinoton.sales.opportunity.dto.OpportunityListItemDto">
+        <id property="opportunityId" column="opportunity_id"/>
+        <result property="departmentCode" column="department_code"/>
+        <result property="departmentName" column="department_name"/>
+        <result property="customerName" column="customer_name"/>
+        <result property="projectName" column="project_name"/>
+        <result property="expectedOrderPeriod" column="expected_order_period"/>
+        <result property="expectedDeliveryPeriod" column="expected_delivery_period"/>
+        <result property="projectAmount" column="project_amount"/>
+        <result property="ownerName" column="owner_name"/>
+        <result property="status" column="status"/>
+        <result property="probability" column="probability"/>
+        <result property="probabilityStageName" column="probability_stage_name"/>
+    </resultMap>
+
+    <resultMap id="OpportunityDetailsMap" type="com.kinoton.sales.opportunity.dto.OpportunityDetailsDto">
+        <id property="opportunityId" column="opportunity_id"/>
+        <result property="departmentId" column="department_id"/>
+        <result property="departmentCode" column="department_code"/>
+        <result property="departmentName" column="department_name"/>
+        <result property="customerName" column="customer_name"/>
+        <result property="projectName" column="project_name"/>
+        <result property="ownerName" column="owner_name"/>
+        <result property="expectedOrderPeriod" column="expected_order_period"/>
+        <result property="expectedDeliveryPeriod" column="expected_delivery_period"/>
+        <result property="projectAmount" column="project_amount"/>
+        <result property="status" column="status"/>
+        <result property="probability" column="probability"/>
+        <result property="probabilityStageName" column="probability_stage_name"/>
+    </resultMap>
+
+    <resultMap id="OpportunityProgressItemMap" type="com.kinoton.sales.opportunity.dto.OpportunityProgressItemDto">
+        <id property="opportunityProgressId" column="opportunity_progress_id"/>
+        <result property="progressDate" column="progress_date"/>
+        <result property="probability" column="probability"/>
+        <result property="probabilityStageName" column="probability_stage_name"/>
+        <result property="content" column="content"/>
+    </resultMap>
+
+    <select id="selectDepartmentIdByCode" parameterType="string" resultType="long">
+        -- 사업본부 코드로 활성 부서를 조회한다.
+        SELECT
+            d.department_id
+        FROM departments d
+        WHERE d.code = #{departmentCode}
+          AND d.is_active = TRUE
+    </select>
+
+    <select id="selectProbabilityStageByDepartmentAndProbability"
+            parameterType="com.kinoton.sales.opportunity.dto.ProbabilityStageLookupCondition"
+            resultMap="ProbabilityStageSimpleMap">
+        -- 사업본부와 확률 기준으로 활성 수주확률 단계를 조회한다.
+        SELECT
+            ps.probability_stage_id,
+            ps.probability,
+            ps.name
+        FROM probability_stages ps
+        WHERE ps.department_id = #{departmentId}
+          AND ps.probability = #{probability}
+          AND ps.is_active = TRUE
+    </select>
+
+    <select id="selectProbabilityStageListByDepartmentId" parameterType="long" resultMap="ProbabilityStageSimpleMap">
+        -- 사업본부별 활성 수주확률 단계 목록을 조회한다.
+        SELECT
+            ps.probability_stage_id,
+            ps.probability,
+            ps.name
+        FROM probability_stages ps
+        WHERE ps.department_id = #{departmentId}
+          AND ps.is_active = TRUE
+        ORDER BY ps.display_order, ps.probability
+    </select>
+
+    <insert id="insertOpportunity"
+            parameterType="com.kinoton.sales.opportunity.dto.OpportunityCreateCommandDto"
+            useGeneratedKeys="true"
+            keyProperty="opportunityId"
+            keyColumn="opportunity_id">
+        -- 신규 영업 사이트를 등록한다.
+        INSERT INTO opportunities (
+            department_id,
+            customer_name,
+            project_name,
+            owner_name,
+            expected_order_period,
+            expected_delivery_period,
+            project_amount,
+            probability_stage_id,
+            status,
+            created_by,
+            updated_by
+        )
+        VALUES (
+            #{departmentId},
+            #{customerName},
+            #{projectName},
+            #{ownerName},
+            #{expectedOrderPeriod},
+            #{expectedDeliveryPeriod},
+            #{projectAmount},
+            #{probabilityStageId},
+            #{status},
+            #{createdBy},
+            #{createdBy}
+        )
+    </insert>
+
+    <insert id="insertOpportunityProgress"
+            parameterType="com.kinoton.sales.opportunity.dto.OpportunityProgressCreateCommandDto"
+            useGeneratedKeys="true"
+            keyProperty="opportunityProgressId"
+            keyColumn="opportunity_progress_id">
+        -- 영업 사이트 등록 시 초기 진행 기록을 생성한다.
+        INSERT INTO opportunity_progress (
+            opportunity_id,
+            progress_date,
+            probability_stage_id,
+            content,
+            created_by
+        )
+        VALUES (
+            #{opportunityId},
+            #{progressDate},
+            #{probabilityStageId},
+            #{content},
+            #{createdBy}
+        )
+    </insert>
+
+    <update id="updateOpportunityProbabilityStage"
+            parameterType="com.kinoton.sales.opportunity.dto.OpportunityStageUpdateCommandDto">
+        -- 최신 영업 진행 기록의 수주확률 단계를 영업 사이트 현재 단계에 반영한다.
+        UPDATE opportunities
+        SET
+            probability_stage_id = #{probabilityStageId},
+            updated_by = #{updatedBy},
+            updated_at = NOW()
+        WHERE opportunity_id = #{opportunityId}
+    </update>
+
+    <select id="selectOpportunityList"
+            parameterType="com.kinoton.sales.opportunity.dto.OpportunityListSearchCondition"
+            resultMap="OpportunityListItemMap">
+        -- 영업 사이트 목록을 검색 조건에 따라 조회한다.
+        SELECT
+            o.opportunity_id,
+            d.code AS department_code,
+            d.name AS department_name,
+            o.customer_name,
+            o.project_name,
+            o.expected_order_period,
+            o.expected_delivery_period,
+            o.project_amount,
+            o.owner_name,
+            o.status,
+            ps.probability,
+            ps.name AS probability_stage_name
+        FROM opportunities o
+        INNER JOIN departments d
+            ON d.department_id = o.department_id
+        INNER JOIN probability_stages ps
+            ON ps.probability_stage_id = o.probability_stage_id
+        <where>
+            <choose>
+                <when test="allDepartments">
+                </when>
+                <when test="departmentCodes != null and departmentCodes.size() > 0">
+                    AND d.code IN
+                    <foreach collection="departmentCodes" item="accessDepartmentCode" open="(" separator="," close=")">
+                        #{accessDepartmentCode}
+                    </foreach>
+                </when>
+                <otherwise>
+                    AND 1 = 0
+                </otherwise>
+            </choose>
+            <if test="departmentCode != null and departmentCode != ''">
+                AND d.code = #{departmentCode}
+            </if>
+            <if test="status != null and status != ''">
+                AND o.status = #{status}
+            </if>
+        </where>
+        ORDER BY o.created_at DESC, o.opportunity_id DESC
+    </select>
+
+    <select id="selectOpportunityDetails" parameterType="long" resultMap="OpportunityDetailsMap">
+        -- 영업 사이트 상세 정보를 조회한다.
+        SELECT
+            o.opportunity_id,
+            d.department_id,
+            d.code AS department_code,
+            d.name AS department_name,
+            o.customer_name,
+            o.project_name,
+            o.owner_name,
+            o.expected_order_period,
+            o.expected_delivery_period,
+            o.project_amount,
+            o.status,
+            ps.probability,
+            ps.name AS probability_stage_name
+        FROM opportunities o
+        INNER JOIN departments d
+            ON d.department_id = o.department_id
+        INNER JOIN probability_stages ps
+            ON ps.probability_stage_id = o.probability_stage_id
+        WHERE o.opportunity_id = #{opportunityId}
+    </select>
+
+    <select id="selectOpportunityProgressList" parameterType="long" resultMap="OpportunityProgressItemMap">
+        -- 영업 사이트 날짜별 진행 기록을 조회한다.
+        SELECT
+            op.opportunity_progress_id,
+            op.progress_date,
+            ps.probability,
+            ps.name AS probability_stage_name,
+            op.content
+        FROM opportunity_progress op
+        INNER JOIN probability_stages ps
+            ON ps.probability_stage_id = op.probability_stage_id
+        WHERE op.opportunity_id = #{opportunityId}
+        ORDER BY op.progress_date DESC, op.opportunity_progress_id DESC
+    </select>
+</mapper>

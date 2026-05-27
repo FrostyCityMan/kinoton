@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <title>Kinoton 영업 관리 대시보드</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div class="app-shell">
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <main class="content">
+        <header th:replace="~{fragments/layout :: header}"></header>
+
+        <section class="notice">
+            <strong>시연용 프로토타입입니다</strong>
+            <p>계약 범위에 포함된 영업 관리 기능을 기준으로 초기 구조를 구성합니다.</p>
+        </section>
+
+        <section class="page-title">
+            <div>
+                <h1>영업 관리 대시보드</h1>
+                <p>사업본부별 영업 현황</p>
+            </div>
+            <a class="primary-action" th:href="@{/opportunities/new}">+ 신규 영업 사이트 등록</a>
+        </section>
+
+        <section class="metric-grid" aria-label="영업 요약">
+            <article class="metric-card">
+                <span>전체 영업 건수</span>
+                <strong th:text="${summary.totalOpportunityCount} + '건'">0건</strong>
+            </article>
+            <article class="metric-card">
+                <span>전체 사업총액</span>
+                <strong th:text="${summary.totalProjectAmount} + '억원'">0억원</strong>
+            </article>
+            <article class="metric-card">
+                <span>확정매출 총액</span>
+                <strong th:text="${summary.confirmedRevenueAmount} + '억원'">0억원</strong>
+            </article>
+            <article class="metric-card">
+                <span>기대매출 총액</span>
+                <strong th:text="${summary.expectedRevenueAmount} + '억원'">0억원</strong>
+            </article>
+        </section>
+
+        <section class="status-strip" aria-label="보류 실주 요약">
+            <span>보류·실주</span>
+            <strong th:text="${summary.holdCount + summary.lostCount + '건'}">0건</strong>
+            <span th:text="${summary.holdLostAmount} + '억원'">0억원</span>
+            <small>매출 집계에서 제외, 본부 리스트에서 확인 가능</small>
+        </section>
+
+        <section class="module-grid" aria-label="사업본부 요약">
+            <article th:each="department : ${departments}"
+                     class="module-card"
+                     th:classappend="${department.departmentCode == 'DE'} ? ' de' : (${department.departmentCode == 'DX'} ? ' dx' : ' strategy')">
+                <h2 th:text="${department.departmentName}">DE 사업본부</h2>
+                <dl class="summary-list">
+                    <div>
+                        <dt>영업 리스트</dt>
+                        <dd th:text="${department.opportunityCount} + '건'">0건</dd>
+                    </div>
+                    <div>
+                        <dt>사업총액 합산</dt>
+                        <dd th:text="${department.totalProjectAmount} + '억원'">0억원</dd>
+                    </div>
+                    <div>
+                        <dt>확정매출 (90%↑)</dt>
+                        <dd class="confirmed" th:text="${department.confirmedRevenueAmount} + '억원'">0억원</dd>
+                    </div>
+                    <div>
+                        <dt>기대매출 (90%↓)</dt>
+                        <dd class="expected" th:text="${department.expectedRevenueAmount} + '억원'">0억원</dd>
+                    </div>
+                    <div>
+                        <dt>보류·실주</dt>
+                        <dd th:text="${department.holdCount + department.lostCount + '건 · ' + department.holdLostAmount + '억원'}">0건 · 0억원</dd>
+                    </div>
+                </dl>
+                <a th:href="@{/opportunities(departmentCode=${department.departmentCode})}">사이트 목록 보기</a>
+            </article>
+        </section>
+
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </main>
+</div>
+</body>
+</html>

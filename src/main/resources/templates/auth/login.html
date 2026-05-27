@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kinoton 로그인</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="login-page">
+<main class="login-panel">
+    <div class="login-brand">
+        <strong>KINOTON</strong>
+        <span>영업 관리 시스템</span>
+    </div>
+    <form th:action="@{/login}" method="post" class="login-form">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <h1>로그인</h1>
+        <p th:if="${param.error}" class="form-error">이메일 또는 비밀번호를 확인하세요.</p>
+        <p th:if="${param.logout}" class="form-message">로그아웃되었습니다.</p>
+        <p th:if="${param.signup}" class="form-message">회원가입 신청이 접수되었습니다. 관리자 승인 후 로그인할 수 있습니다.</p>
+
+        <label for="username">이메일</label>
+        <input id="username" name="username" type="email" autocomplete="username" required>
+
+        <label for="password">비밀번호</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+
+        <button type="submit">로그인</button>
+        <div class="login-links">
+            <a th:href="@{/signup}">회원가입 신청</a>
+        </div>
+    </form>
+</main>
+</body>
+</html>

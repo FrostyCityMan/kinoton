@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <title>Kinoton 사용자 권한 수정</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div class="app-shell">
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <main class="content">
+        <header th:replace="~{fragments/layout :: header}"></header>
+
+        <nav class="breadcrumb" aria-label="경로">
+            <a th:href="@{/users}">회원 관리</a>
+            <span th:text="${user.email}">user@example.com</span>
+        </nav>
+
+        <section class="page-title">
+            <div>
+                <h1 th:text="${user.name}">사용자</h1>
+                <p th:text="${user.email}">user@example.com</p>
+            </div>
+        </section>
+
+        <p th:if="${message}" class="form-message" th:text="${message}">저장되었습니다.</p>
+
+        <section class="management-panel">
+            <h2>사용자 권한 수정</h2>
+            <form th:action="@{/users/{id}(id=${user.userId})}" th:object="${updateRequest}" method="post" class="management-form">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                <div class="form-grid compact">
+                    <label>
+                        <span>이름</span>
+                        <input type="text" th:field="*{name}" required>
+                    </label>
+                    <label class="inline-check form-checkline">
+                        <input type="checkbox" th:field="*{active}">
+                        <span>활성</span>
+                    </label>
+                    <label class="inline-check form-checkline">
+                        <input type="checkbox" th:field="*{passwordResetRequired}">
+                        <span>비밀번호 변경 필요</span>
+                    </label>
+                </div>
+
+                <div class="permission-section">
+                    <h3>역할</h3>
+                    <div class="checkbox-grid">
+                        <label class="inline-check" th:each="role : ${roles}">
+                            <input type="checkbox" th:field="*{roleCodes}" th:value="${role.code}">
+                            <span th:text="${role.name}">관리자</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="permission-section">
+                    <h3>사업본부 권한</h3>
+                    <div class="permission-grid">
+                        <div class="permission-row" th:each="department : ${departments}">
+                            <strong th:text="${department.name}">DE 사업본부</strong>
+                            <label class="inline-check">
+                                <input type="checkbox" th:field="*{readableDepartmentCodes}" th:value="${department.code}">
+                                <span>읽기</span>
+                            </label>
+                            <label class="inline-check">
+                                <input type="checkbox" th:field="*{writableDepartmentCodes}" th:value="${department.code}">
+                                <span>쓰기</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-actions">
+                    <a class="secondary-action" th:href="@{/users}">목록</a>
+                    <button type="submit" class="primary-action">저장</button>
+                </div>
+            </form>
+        </section>
+
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kinoton 수주확률 설정</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div class="app-shell">
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <main class="content">
+        <header th:replace="~{fragments/layout :: header}"></header>
+
+        <section class="page-title">
+            <div>
+                <h1>수주확률 설정</h1>
+                <p>사업본부별 수주확률 단계와 설명을 관리합니다. 90% 이상 단계는 확정매출로 집계됩니다.</p>
+            </div>
+        </section>
+
+        <p th:if="${message}" class="form-message" th:text="${message}">저장되었습니다.</p>
+
+        <section class="settings-panel">
+            <div class="department-tabs" aria-label="사업본부 선택">
+                <a th:each="department : ${departments}"
+                   th:href="@{/probability-stages(departmentCode=${department.code})}"
+                   th:text="${department.name}"
+                   th:classappend="${department.code == selectedDepartmentCode} ? ' active' : ''">
+                    DE 사업본부
+                </a>
+            </div>
+
+            <div class="settings-heading">
+                <div>
+                    <h2 th:text="${setting.department().name} + ' 수주확률 단계'">DE 사업본부 수주확률 단계</h2>
+                    <p>확률값은 같은 사업본부 안에서 중복될 수 없습니다.</p>
+                </div>
+            </div>
+
+            <form th:action="@{/probability-stages/{code}(code=${selectedDepartmentCode})}"
+                  th:object="${saveRequest}"
+                  method="post"
+                  class="stage-form">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                <div class="table-panel stage-table-panel">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>확률(%)</th>
+                            <th>단계명</th>
+                            <th>설명</th>
+                            <th>집계 구분</th>
+                            <th>관리</th>
+                        </tr>
+                        </thead>
+                        <tbody id="stageRows">
+                        <tr class="stage-row" th:each="stage, iter : *{stages}">
+                            <td>
+                                <input type="hidden"
+                                       th:field="*{stages[__${iter.index}__].probabilityStageId}"
+                                       data-stage-field="probabilityStageId">
+                                <input type="number"
+                                       min="0"
+                                       max="100"
+                                       th:field="*{stages[__${iter.index}__].probability}"
+                                       data-stage-field="probability"
+                                       required>
+                            </td>
+                            <td>
+                                <input type="text"
+                                       th:field="*{stages[__${iter.index}__].name}"
+                                       data-stage-field="name"
+                                       required>
+                            </td>
+                            <td>
+                                <input type="text"
+                                       th:field="*{stages[__${iter.index}__].description}"
+                                       data-stage-field="description">
+                            </td>
+                            <td>
+                                <span class="summary-chip" th:text="${stage.probability >= 90 ? '확정매출' : '기대매출'}">
+                                    기대매출
+                                </span>
+                            </td>
+                            <td>
+                                <button type="button" class="danger-action" data-remove-stage>삭제</button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="settings-actions">
+                    <button type="button" class="secondary-action" id="addStageButton">+ 단계 추가</button>
+                    <button type="submit" class="primary-action">저장</button>
+                </div>
+            </form>
+        </section>
+
+        <template id="stageRowTemplate">
+            <tr class="stage-row">
+                <td>
+                    <input type="hidden" data-stage-field="probabilityStageId">
+                    <input type="number" min="0" max="100" data-stage-field="probability" required>
+                </td>
+                <td>
+                    <input type="text" data-stage-field="name" required>
+                </td>
+                <td>
+                    <input type="text" data-stage-field="description">
+                </td>
+                <td>
+                    <span class="summary-chip">기대매출</span>
+                </td>
+                <td>
+                    <button type="button" class="danger-action" data-remove-stage>삭제</button>
+                </td>
+            </tr>
+        </template>
+
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </main>
+</div>
+<script th:src="@{/js/probability-stages.js}"></script>
+</body>
+</html>

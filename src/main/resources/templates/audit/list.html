@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kinoton 감사 로그</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div class="app-shell">
+    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <main class="content">
+        <header th:replace="~{fragments/layout :: header}"></header>
+
+        <section class="page-title">
+            <div>
+                <h1>감사 로그</h1>
+                <p>주요 등록, 수정, 삭제 행위의 수행자와 변경 메타데이터를 조회합니다.</p>
+            </div>
+        </section>
+
+        <section class="audit-filter-panel">
+            <form th:action="@{/audit-logs}" method="get" class="audit-filter-form">
+                <label>
+                    <span>대상 유형</span>
+                    <select name="targetType">
+                        <option value="">전체</option>
+                        <option value="OPPORTUNITY" th:selected="${condition.targetType == 'OPPORTUNITY'}">영업 사이트</option>
+                        <option value="OPPORTUNITY_PROGRESS" th:selected="${condition.targetType == 'OPPORTUNITY_PROGRESS'}">영업 진행 기록</option>
+                        <option value="PROBABILITY_STAGE_SETTING" th:selected="${condition.targetType == 'PROBABILITY_STAGE_SETTING'}">수주확률 설정</option>
+                        <option value="ATTACHMENT" th:selected="${condition.targetType == 'ATTACHMENT'}">첨부파일</option>
+                        <option value="USER" th:selected="${condition.targetType == 'USER'}">회원</option>
+                    </select>
+                </label>
+                <label>
+                    <span>작업</span>
+                    <input type="text" name="action" th:value="${condition.action}" placeholder="예: INSERT_USER">
+                </label>
+                <label>
+                    <span>수행자 ID</span>
+                    <input type="number" name="actorUserId" th:value="${condition.actorUserId}" min="1">
+                </label>
+                <label>
+                    <span>조회 건수</span>
+                    <select name="limit">
+                        <option value="50" th:selected="${condition.limit == 50}">50</option>
+                        <option value="100" th:selected="${condition.limit == 100}">100</option>
+                        <option value="200" th:selected="${condition.limit == 200}">200</option>
+                        <option value="500" th:selected="${condition.limit == 500}">500</option>
+                    </select>
+                </label>
+                <button type="submit">조회</button>
+            </form>
+        </section>
+
+        <section class="table-panel audit-table-panel">
+            <table>
+                <thead>
+                <tr>
+                    <th>일시</th>
+                    <th>수행자</th>
+                    <th>작업</th>
+                    <th>대상</th>
+                    <th>IP</th>
+                    <th>변경 전</th>
+                    <th>변경 후</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="auditLog : ${auditLogs}">
+                    <td th:text="${#temporals.format(auditLog.createdAt, 'yyyy-MM-dd HH:mm:ss')}">2026-05-27 10:00:00</td>
+                    <td>
+                        <strong th:text="${auditLog.actorName != null ? auditLog.actorName : 'SYSTEM'}">관리자</strong>
+                        <span class="muted-inline" th:text="${auditLog.actorUserId != null ? '#' + auditLog.actorUserId : ''}">#1</span>
+                    </td>
+                    <td th:text="${auditLog.action}">INSERT_USER</td>
+                    <td>
+                        <strong th:text="${auditLog.targetType}">USER</strong>
+                        <span class="muted-inline" th:text="${auditLog.targetId != null ? '#' + auditLog.targetId : ''}">#1</span>
+                    </td>
+                    <td th:text="${auditLog.ipAddress}">127.0.0.1</td>
+                    <td><pre class="audit-json" th:text="${auditLog.beforeData}">{}</pre></td>
+                    <td><pre class="audit-json" th:text="${auditLog.afterData}">{}</pre></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(auditLogs)}">
+                    <td colspan="7" class="empty-cell">조회된 감사 로그가 없습니다.</td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </main>
+</div>
+</body>
+</html>

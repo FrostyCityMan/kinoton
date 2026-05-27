@@ -1,0 +1,14 @@
+.gradle/
+build/
+out/
+target/
+
+.idea/
+*.iml
+.vscode/
+
+.env
+*.log
+
+storage/
+tmp/

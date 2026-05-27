@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kinoton.sales.dashboard.dao.DashboardDao">
+    <resultMap id="DashboardDepartmentSummaryMap" type="com.kinoton.sales.dashboard.dto.DashboardDepartmentSummaryDto">
+        <id property="departmentId" column="department_id"/>
+        <result property="departmentCode" column="department_code"/>
+        <result property="departmentName" column="department_name"/>
+        <result property="opportunityCount" column="opportunity_count"/>
+        <result property="totalProjectAmount" column="total_project_amount"/>
+        <result property="confirmedRevenueAmount" column="confirmed_revenue_amount"/>
+        <result property="expectedRevenueAmount" column="expected_revenue_amount"/>
+        <result property="holdCount" column="hold_count"/>
+        <result property="lostCount" column="lost_count"/>
+        <result property="holdLostAmount" column="hold_lost_amount"/>
+    </resultMap>
+
+    <select id="selectDashboardDepartmentSummaryList"
+            parameterType="com.kinoton.sales.security.dto.DepartmentAccessScope"
+            resultMap="DashboardDepartmentSummaryMap">
+        -- 사업본부별 영업 현황 지표를 집계한다.
+        SELECT
+            d.department_id,
+            d.code AS department_code,
+            d.name AS department_name,
+            COUNT(o.opportunity_id) FILTER (WHERE o.status NOT IN ('HOLD', 'LOST')) AS opportunity_count,
+            COALESCE(SUM(o.project_amount) FILTER (WHERE o.status NOT IN ('HOLD', 'LOST')), 0) AS total_project_amount,
+            COALESCE(SUM(o.project_amount) FILTER (WHERE o.status NOT IN ('HOLD', 'LOST') AND ps.probability &gt;= 90), 0) AS confirmed_revenue_amount,
+            COALESCE(SUM(o.project_amount) FILTER (WHERE o.status NOT IN ('HOLD', 'LOST') AND ps.probability &lt; 90), 0) AS expected_revenue_amount,
+            COUNT(o.opportunity_id) FILTER (WHERE o.status = 'HOLD') AS hold_count,
+            COUNT(o.opportunity_id) FILTER (WHERE o.status = 'LOST') AS lost_count,
+            COALESCE(SUM(o.project_amount) FILTER (WHERE o.status IN ('HOLD', 'LOST')), 0) AS hold_lost_amount
+        FROM departments d
+        LEFT JOIN opportunities o
+            ON o.department_id = d.department_id
+        LEFT JOIN probability_stages ps
+            ON ps.probability_stage_id = o.probability_stage_id
+        WHERE d.is_active = TRUE
+        <choose>
+            <when test="allDepartments">
+            </when>
+            <when test="departmentCodes != null and departmentCodes.size() > 0">
+                AND d.code IN
+                <foreach collection="departmentCodes" item="departmentCode" open="(" separator="," close=")">
+                    #{departmentCode}
+                </foreach>
+            </when>
+            <otherwise>
+                AND 1 = 0
+            </otherwise>
+        </choose>
+        GROUP BY
+            d.department_id,
+            d.code,
+            d.name,
+            d.display_order
+        ORDER BY d.display_order, d.department_id
+    </select>
+</mapper>
