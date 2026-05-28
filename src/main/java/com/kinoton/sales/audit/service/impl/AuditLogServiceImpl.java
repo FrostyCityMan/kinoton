@@ -27,6 +27,16 @@ public class AuditLogServiceImpl implements AuditLogService {
         this.auditLogDao = auditLogDao;
     }
 
+    /**
+     * Inserts an audit log entry into the system.
+     *
+     * @param actorUserId The ID of the user performing the action.
+     * @param targetType  The type of the target entity being acted upon.
+     * @param targetId    The ID of the target entity being acted upon.
+     * @param action      The action performed by the user.
+     * @param beforeData  The data state of the target entity before the action was performed.
+     * @param afterData   The data state of the target entity after the action was performed.
+     */
     @Override
     @Transactional
     public void insertAuditLog(
