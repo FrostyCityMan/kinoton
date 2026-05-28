@@ -1147,6 +1147,23 @@ a {
     width: 630px;
 }
 
+.audit-table-panel th,
+.audit-table-panel td {
+    overflow: hidden;
+}
+
+.audit-cell {
+    display: block;
+    max-height: 96px;
+    max-width: 100%;
+    overflow: auto;
+    white-space: nowrap;
+}
+
+.audit-json-cell {
+    max-height: 132px;
+}
+
 .access-table-panel table {
     min-width: 1120px;
 }
@@ -1164,10 +1181,10 @@ a {
     font-size: 12px;
     line-height: 1.5;
     margin: 0;
-    max-height: 120px;
-    overflow: auto;
-    white-space: pre-wrap;
-    word-break: break-word;
+    max-height: none;
+    overflow: visible;
+    white-space: pre;
+    word-break: normal;
 }
 
 .muted-inline {

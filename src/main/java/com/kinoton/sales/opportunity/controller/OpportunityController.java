@@ -77,10 +77,7 @@ public class OpportunityController {
 
     @GetMapping("/opportunities/new")
     public String selectOpportunityCreatePage(Model model) {
-        model.addAttribute("createRequest", new OpportunityCreateRequest());
-        model.addAttribute("departments", probabilityStageService.selectDepartmentOptionList());
-        model.addAttribute("employees", employeeService.selectEmployeeOptionList());
-        model.addAttribute("allowedUsers", userManagementService.selectActiveUserOptionList());
+        addOpportunityCreateModel(model, new OpportunityCreateRequest());
         return "opportunity/create";
     }
 
@@ -93,9 +90,7 @@ public class OpportunityController {
         RedirectAttributes redirectAttributes
     ) {
         if (bindingResult.hasErrors()) {
-            model.addAttribute("departments", probabilityStageService.selectDepartmentOptionList());
-            model.addAttribute("employees", employeeService.selectEmployeeOptionList());
-            model.addAttribute("allowedUsers", userManagementService.selectActiveUserOptionList());
+            addOpportunityCreateModel(model, request);
             return "opportunity/create";
         }
 
@@ -108,9 +103,7 @@ public class OpportunityController {
             redirectAttributes.addFlashAttribute("message", "영업 사이트가 등록되었습니다.");
             return "redirect:/opportunities/" + response.opportunityId();
         } catch (BusinessException exception) {
-            model.addAttribute("departments", probabilityStageService.selectDepartmentOptionList());
-            model.addAttribute("employees", employeeService.selectEmployeeOptionList());
-            model.addAttribute("allowedUsers", userManagementService.selectActiveUserOptionList());
+            addOpportunityCreateModel(model, request);
             model.addAttribute("errorMessage", exception.getMessage());
             return "opportunity/create";
         }
@@ -220,5 +213,13 @@ public class OpportunityController {
             return userDetails.selectUserId();
         }
         return null;
+    }
+
+    private void addOpportunityCreateModel(Model model, OpportunityCreateRequest request) {
+        model.addAttribute("createRequest", request);
+        model.addAttribute("departments", probabilityStageService.selectDepartmentOptionList());
+        model.addAttribute("employees", employeeService.selectEmployeeOptionList());
+        model.addAttribute("allowedUsers", userManagementService.selectActiveUserOptionList());
+        model.addAttribute("probabilityStages", probabilityStageService.selectProbabilityStageSetting().stages());
     }
 }

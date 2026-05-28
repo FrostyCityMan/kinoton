@@ -101,12 +101,23 @@
                     </label>
                     <label>
                         <span>초기 수주확률</span>
-                        <input type="number" min="0" max="100" th:field="*{probability}" placeholder="예: 10" required>
+                        <select th:field="*{probability}" required>
+                            <option value="">선택</option>
+                            <option th:each="stage : ${probabilityStages}"
+                                    th:value="${stage.probability}"
+                                    th:text="${stage.probability + '% - ' + stage.name}">
+                                10% - 영업 시작
+                            </option>
+                        </select>
                     </label>
                     <div class="helper-card">
                         <strong>입력 기준</strong>
-                        <span>담당자는 직원 마스터의 활성 직원 중에서 선택합니다. 수주확률은 전사 공통 설정에 등록된 값이어야 합니다.</span>
+                        <span>담당자는 직원 마스터의 활성 직원 중에서 선택합니다. 초기 수주확률은 수주확률 설정의 활성 단계 중에서 선택합니다.</span>
                     </div>
+                </div>
+
+                <div th:if="${#lists.isEmpty(probabilityStages)}" class="form-error">
+                    등록 가능한 수주확률 단계가 없습니다. 먼저 수주확률 설정에서 단계를 등록하세요.
                 </div>
 
                 <div th:if="${#lists.isEmpty(employees)}" class="form-error">

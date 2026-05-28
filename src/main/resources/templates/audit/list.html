@@ -60,30 +60,48 @@
             <table>
                 <thead>
                 <tr>
-                    <th>일시</th>
-                    <th>수행자</th>
-                    <th>작업</th>
-                    <th>대상</th>
-                    <th>IP</th>
-                    <th>변경 전</th>
-                    <th>변경 후</th>
+                    <th><div class="audit-cell">일시</div></th>
+                    <th><div class="audit-cell">수행자</div></th>
+                    <th><div class="audit-cell">작업</div></th>
+                    <th><div class="audit-cell">대상</div></th>
+                    <th><div class="audit-cell">IP</div></th>
+                    <th><div class="audit-cell">변경 전</div></th>
+                    <th><div class="audit-cell">변경 후</div></th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr th:each="auditLog : ${auditLogs}">
-                    <td th:text="${#temporals.format(auditLog.createdAt, 'yyyy-MM-dd HH:mm:ss')}">2026-05-27 10:00:00</td>
                     <td>
-                        <strong th:text="${auditLog.actorDisplayName}">관리자</strong>
-                        <span class="muted-inline" th:text="${auditLog.actorUserId != null ? '#' + auditLog.actorUserId : ''}">#1</span>
+                        <div class="audit-cell" th:text="${#temporals.format(auditLog.createdAt, 'yyyy-MM-dd HH:mm:ss')}">2026-05-27 10:00:00</div>
                     </td>
-                    <td th:text="${auditLog.actionName}">INSERT_USER</td>
                     <td>
-                        <strong th:text="${auditLog.targetType}">USER</strong>
-                        <span class="muted-inline" th:text="${auditLog.targetId != null ? '#' + auditLog.targetId : ''}">#1</span>
+                        <div class="audit-cell">
+                            <strong th:text="${auditLog.actorDisplayName}">관리자</strong>
+                            <span class="muted-inline" th:text="${auditLog.actorUserId != null ? '#' + auditLog.actorUserId : ''}">#1</span>
+                        </div>
                     </td>
-                    <td th:text="${auditLog.ipAddress}">127.0.0.1</td>
-                    <td><pre class="audit-json" th:text="${auditLog.beforeData}">{}</pre></td>
-                    <td><pre class="audit-json" th:text="${auditLog.afterData}">{}</pre></td>
+                    <td>
+                        <div class="audit-cell" th:text="${auditLog.actionName}">INSERT_USER</div>
+                    </td>
+                    <td>
+                        <div class="audit-cell">
+                            <strong th:text="${auditLog.targetType}">USER</strong>
+                            <span class="muted-inline" th:text="${auditLog.targetId != null ? '#' + auditLog.targetId : ''}">#1</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="audit-cell" th:text="${auditLog.ipAddress}">127.0.0.1</div>
+                    </td>
+                    <td>
+                        <div class="audit-cell audit-json-cell">
+                            <pre class="audit-json" th:text="${auditLog.beforeData}">{}</pre>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="audit-cell audit-json-cell">
+                            <pre class="audit-json" th:text="${auditLog.afterData}">{}</pre>
+                        </div>
+                    </td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(auditLogs)}">
                     <td colspan="7" class="empty-cell">조회된 감사 로그가 없습니다.</td>
