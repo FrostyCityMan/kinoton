@@ -735,6 +735,15 @@ a {
     font-size: 15px;
 }
 
+.allowed-users-section {
+    display: grid;
+    gap: 12px;
+}
+
+.allowed-users-section[hidden] {
+    display: none;
+}
+
 .management-form {
     display: grid;
     gap: 18px;

@@ -70,12 +70,16 @@
                             <span>보안 프로젝트</span>
                         </label>
                     </div>
-                    <p class="helper-text">보안 프로젝트는 관리자와 아래 열람 허용자만 조회할 수 있습니다. 등록자는 자동으로 열람 허용자에 포함됩니다.</p>
-                    <div class="permission-grid">
-                        <label class="inline-check" th:each="user : ${allowedUsers}">
-                            <input type="checkbox" th:field="*{allowedUserIds}" th:value="${user.userId}">
-                            <span th:text="${user.displayName}">사용자</span>
-                        </label>
+                    <div class="allowed-users-section"
+                         data-allowed-users-section
+                         th:hidden="${createRequest.securityLevel != 'CONFIDENTIAL'}">
+                        <p class="helper-text">보안 프로젝트는 관리자와 아래 열람 허용자만 조회할 수 있습니다. 등록자는 자동으로 열람 허용자에 포함됩니다.</p>
+                        <div class="permission-grid">
+                            <label class="inline-check" th:each="user : ${allowedUsers}">
+                                <input type="checkbox" th:field="*{allowedUserIds}" th:value="${user.userId}">
+                                <span th:text="${user.displayName}">사용자</span>
+                            </label>
+                        </div>
                     </div>
                 </div>
 
@@ -135,5 +139,6 @@
         <footer th:replace="~{fragments/layout :: footer}"></footer>
     </main>
 </div>
+<script th:src="@{/js/opportunity-create.js}" defer></script>
 </body>
 </html>
