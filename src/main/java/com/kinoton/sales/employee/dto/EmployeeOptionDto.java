@@ -3,6 +3,7 @@ package com.kinoton.sales.employee.dto;
 public class EmployeeOptionDto {
 
     private Long employeeId;
+    private String departmentCode;
     private String name;
     private String departmentName;
     private String positionName;
@@ -13,6 +14,14 @@ public class EmployeeOptionDto {
 
     public void setEmployeeId(Long employeeId) {
         this.employeeId = employeeId;
+    }
+
+    public String getDepartmentCode() {
+        return departmentCode;
+    }
+
+    public void setDepartmentCode(String departmentCode) {
+        this.departmentCode = departmentCode;
     }
 
     public String getName() {

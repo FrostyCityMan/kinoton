@@ -17,6 +17,7 @@
 
     <resultMap id="EmployeeOptionMap" type="com.kinoton.sales.employee.dto.EmployeeOptionDto">
         <id property="employeeId" column="employee_id"/>
+        <result property="departmentCode" column="department_code"/>
         <result property="name" column="name"/>
         <result property="departmentName" column="department_name"/>
         <result property="positionName" column="position_name"/>
@@ -49,6 +50,7 @@
         -- 영업 담당자 선택용 활성 직원 목록을 조회한다.
         SELECT
             e.employee_id,
+            d.code AS department_code,
             e.name,
             d.name AS department_name,
             e.position_name
@@ -59,10 +61,42 @@
         ORDER BY d.display_order, e.name, e.employee_id
     </select>
 
+    <select id="selectEmployeeOptionListByAccessScope"
+            parameterType="com.kinoton.sales.security.dto.DepartmentAccessScope"
+            resultMap="EmployeeOptionMap">
+        -- 권한 범위 안에서 영업 담당자로 선택 가능한 활성 직원 목록을 조회한다.
+        SELECT
+            e.employee_id,
+            d.code AS department_code,
+            e.name,
+            d.name AS department_name,
+            e.position_name
+        FROM employees e
+        INNER JOIN departments d
+            ON d.department_id = e.department_id
+        WHERE e.is_active = TRUE
+          AND d.is_active = TRUE
+        <choose>
+            <when test="allDepartments">
+            </when>
+            <when test="departmentCodes != null and departmentCodes.size() > 0">
+                AND d.code IN
+                <foreach collection="departmentCodes" item="departmentCode" open="(" separator="," close=")">
+                    #{departmentCode}
+                </foreach>
+            </when>
+            <otherwise>
+                AND 1 = 0
+            </otherwise>
+        </choose>
+        ORDER BY d.display_order, e.name, e.employee_id
+    </select>
+
     <select id="selectActiveEmployeeOptionDetails" parameterType="long" resultMap="EmployeeOptionMap">
         -- 영업 담당자로 선택된 활성 직원 상세를 조회한다.
         SELECT
             e.employee_id,
+            d.code AS department_code,
             e.name,
             d.name AS department_name,
             e.position_name

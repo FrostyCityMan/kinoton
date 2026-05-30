@@ -10,6 +10,9 @@ import com.kinoton.sales.probability.dto.ProbabilityStageSaveRequest;
 import com.kinoton.sales.probability.dto.ProbabilityStageSaveRow;
 import com.kinoton.sales.probability.dto.ProbabilityStageSettingResponse;
 import com.kinoton.sales.probability.service.ProbabilityStageService;
+import com.kinoton.sales.security.DepartmentAccessService;
+import com.kinoton.sales.security.dto.DepartmentAccessScope;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,16 +29,29 @@ public class ProbabilityStageServiceImpl implements ProbabilityStageService {
 
     private final ProbabilityStageDao probabilityStageDao;
     private final AuditLogService auditLogService;
+    private final DepartmentAccessService departmentAccessService;
 
-    public ProbabilityStageServiceImpl(ProbabilityStageDao probabilityStageDao, AuditLogService auditLogService) {
+    public ProbabilityStageServiceImpl(
+        ProbabilityStageDao probabilityStageDao,
+        AuditLogService auditLogService,
+        DepartmentAccessService departmentAccessService
+    ) {
         this.probabilityStageDao = probabilityStageDao;
         this.auditLogService = auditLogService;
+        this.departmentAccessService = departmentAccessService;
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<DepartmentOptionDto> selectDepartmentOptionList() {
         return probabilityStageDao.selectDepartmentOptionList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DepartmentOptionDto> selectWritableDepartmentOptionList(Authentication authentication) {
+        DepartmentAccessScope writableScope = departmentAccessService.selectWritableScope(authentication);
+        return probabilityStageDao.selectDepartmentOptionListByAccessScope(writableScope);
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.kinoton.sales.employee.dto.EmployeeCreateCommandDto;
 import com.kinoton.sales.employee.dto.EmployeeListItemDto;
 import com.kinoton.sales.employee.dto.EmployeeOptionDto;
 import com.kinoton.sales.probability.dto.DepartmentOptionDto;
+import com.kinoton.sales.security.dto.DepartmentAccessScope;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -14,6 +15,8 @@ public interface EmployeeDao {
     List<EmployeeListItemDto> selectEmployeeList();
 
     List<EmployeeOptionDto> selectEmployeeOptionList();
+
+    List<EmployeeOptionDto> selectEmployeeOptionListByAccessScope(DepartmentAccessScope accessScope);
 
     EmployeeOptionDto selectActiveEmployeeOptionDetails(Long employeeId);
 

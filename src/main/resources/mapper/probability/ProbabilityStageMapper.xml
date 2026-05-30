@@ -31,6 +31,32 @@
         ORDER BY d.display_order, d.department_id
     </select>
 
+    <select id="selectDepartmentOptionListByAccessScope"
+            parameterType="com.kinoton.sales.security.dto.DepartmentAccessScope"
+            resultMap="DepartmentOptionMap">
+        -- 권한 범위 안에서 선택 가능한 활성 사업본부 목록을 조회한다.
+        SELECT
+            d.department_id,
+            d.code,
+            d.name
+        FROM departments d
+        WHERE d.is_active = TRUE
+        <choose>
+            <when test="allDepartments">
+            </when>
+            <when test="departmentCodes != null and departmentCodes.size() > 0">
+                AND d.code IN
+                <foreach collection="departmentCodes" item="departmentCode" open="(" separator="," close=")">
+                    #{departmentCode}
+                </foreach>
+            </when>
+            <otherwise>
+                AND 1 = 0
+            </otherwise>
+        </choose>
+        ORDER BY d.display_order, d.department_id
+    </select>
+
     <select id="selectProbabilityStageList" resultMap="ProbabilityStageItemMap">
         -- 전사 공통 활성 수주확률 단계를 조회한다.
         SELECT

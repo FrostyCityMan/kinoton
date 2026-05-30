@@ -8,7 +8,10 @@ import com.kinoton.sales.employee.dto.EmployeeCreateRequest;
 import com.kinoton.sales.employee.dto.EmployeeManagementResponse;
 import com.kinoton.sales.employee.dto.EmployeeOptionDto;
 import com.kinoton.sales.employee.service.EmployeeService;
+import com.kinoton.sales.security.DepartmentAccessService;
+import com.kinoton.sales.security.dto.DepartmentAccessScope;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -22,10 +25,16 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeDao employeeDao;
     private final AuditLogService auditLogService;
+    private final DepartmentAccessService departmentAccessService;
 
-    public EmployeeServiceImpl(EmployeeDao employeeDao, AuditLogService auditLogService) {
+    public EmployeeServiceImpl(
+        EmployeeDao employeeDao,
+        AuditLogService auditLogService,
+        DepartmentAccessService departmentAccessService
+    ) {
         this.employeeDao = employeeDao;
         this.auditLogService = auditLogService;
+        this.departmentAccessService = departmentAccessService;
     }
 
     @Override
@@ -41,6 +50,13 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Transactional(readOnly = true)
     public List<EmployeeOptionDto> selectEmployeeOptionList() {
         return employeeDao.selectEmployeeOptionList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<EmployeeOptionDto> selectWritableEmployeeOptionList(Authentication authentication) {
+        DepartmentAccessScope writableScope = departmentAccessService.selectWritableScope(authentication);
+        return employeeDao.selectEmployeeOptionListByAccessScope(writableScope);
     }
 
     @Override

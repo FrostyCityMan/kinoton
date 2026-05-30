@@ -90,7 +90,7 @@ public class OpportunityServiceImpl implements OpportunityService {
             throw new BusinessException("존재하지 않는 수주확률 단계입니다.");
         }
 
-        EmployeeOptionDto ownerEmployee = selectOwnerEmployee(request);
+        EmployeeOptionDto ownerEmployee = selectOwnerEmployee(request, authentication);
         String securityLevel = selectSecurityLevel(request.getSecurityLevel());
 
         OpportunityCreateCommandDto command = new OpportunityCreateCommandDto();
@@ -129,7 +129,7 @@ public class OpportunityServiceImpl implements OpportunityService {
         return new OpportunityCreateResponse(command.getOpportunityId());
     }
 
-    private EmployeeOptionDto selectOwnerEmployee(OpportunityCreateRequest request) {
+    private EmployeeOptionDto selectOwnerEmployee(OpportunityCreateRequest request, Authentication authentication) {
         if (request.getOwnerEmployeeId() == null) {
             return null;
         }
@@ -138,6 +138,7 @@ public class OpportunityServiceImpl implements OpportunityService {
         if (employee == null) {
             throw new BusinessException("선택한 담당자 정보를 찾을 수 없습니다.");
         }
+        departmentAccessService.validateWritableDepartment(employee.getDepartmentCode(), authentication);
         return employee;
     }
 

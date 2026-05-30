@@ -76,8 +76,8 @@ public class OpportunityController {
     }
 
     @GetMapping("/opportunities/new")
-    public String selectOpportunityCreatePage(Model model) {
-        addOpportunityCreateModel(model, new OpportunityCreateRequest());
+    public String selectOpportunityCreatePage(Model model, Authentication authentication) {
+        addOpportunityCreateModel(model, new OpportunityCreateRequest(), authentication);
         return "opportunity/create";
     }
 
@@ -90,7 +90,7 @@ public class OpportunityController {
         RedirectAttributes redirectAttributes
     ) {
         if (bindingResult.hasErrors()) {
-            addOpportunityCreateModel(model, request);
+            addOpportunityCreateModel(model, request, authentication);
             return "opportunity/create";
         }
 
@@ -103,7 +103,7 @@ public class OpportunityController {
             redirectAttributes.addFlashAttribute("message", "영업 사이트가 등록되었습니다.");
             return "redirect:/opportunities/" + response.opportunityId();
         } catch (BusinessException exception) {
-            addOpportunityCreateModel(model, request);
+            addOpportunityCreateModel(model, request, authentication);
             model.addAttribute("errorMessage", exception.getMessage());
             return "opportunity/create";
         }
@@ -215,10 +215,10 @@ public class OpportunityController {
         return null;
     }
 
-    private void addOpportunityCreateModel(Model model, OpportunityCreateRequest request) {
+    private void addOpportunityCreateModel(Model model, OpportunityCreateRequest request, Authentication authentication) {
         model.addAttribute("createRequest", request);
-        model.addAttribute("departments", probabilityStageService.selectDepartmentOptionList());
-        model.addAttribute("employees", employeeService.selectEmployeeOptionList());
+        model.addAttribute("departments", probabilityStageService.selectWritableDepartmentOptionList(authentication));
+        model.addAttribute("employees", employeeService.selectWritableEmployeeOptionList(authentication));
         model.addAttribute("allowedUsers", userManagementService.selectActiveUserOptionList());
         model.addAttribute("probabilityStages", probabilityStageService.selectProbabilityStageSetting().stages());
     }
