@@ -81,14 +81,26 @@ a {
 
 .sidebar-brand {
     display: grid;
-    gap: 2px;
+    gap: 8px;
     padding: 0 8px 24px;
 }
 
-.sidebar-brand strong,
-.brand {
-    letter-spacing: 0;
-    font-size: 20px;
+.brand-logo {
+    display: block;
+    height: auto;
+    object-fit: contain;
+}
+
+.header-logo {
+    border-radius: 4px;
+    max-width: 184px;
+    width: 184px;
+}
+
+.sidebar-logo {
+    border-radius: 4px;
+    max-width: 176px;
+    width: 176px;
 }
 
 .sidebar-brand span,
@@ -125,6 +137,7 @@ a {
     align-items: center;
     border-bottom: 1px solid var(--line);
     display: flex;
+    gap: 24px;
     justify-content: space-between;
     margin: 0 -40px 28px;
     padding: 18px 40px;
@@ -138,7 +151,9 @@ a {
 .top-nav {
     align-items: center;
     display: flex;
+    flex-wrap: wrap;
     gap: 18px;
+    justify-content: flex-end;
     color: #514b44;
     font-size: 14px;
 }
@@ -669,14 +684,17 @@ a {
 }
 
 .login-brand {
+    align-items: center;
     display: grid;
-    gap: 4px;
+    gap: 10px;
+    justify-items: center;
     margin-bottom: 28px;
 }
 
-.login-brand strong {
-    font-size: 24px;
-    letter-spacing: 0;
+.login-logo {
+    border-radius: 4px;
+    max-width: 284px;
+    width: 100%;
 }
 
 .login-brand span {
@@ -1267,8 +1285,20 @@ a {
     }
 
     .app-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 12px;
         margin: 0 -16px 20px;
         padding: 14px 16px;
+    }
+
+    .header-logo {
+        max-width: 160px;
+        width: 160px;
+    }
+
+    .top-nav {
+        justify-content: flex-start;
     }
 
     .page-title {
