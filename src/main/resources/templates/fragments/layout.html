@@ -10,6 +10,10 @@
         <a th:href="@{/dashboard}">대시보드</a>
         <a th:href="@{/opportunities}">영업 사이트</a>
         <a th:href="@{/probability-stages}">수주확률 설정</a>
+        <form th:action="@{/logout}" method="post" class="logout-form">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <button type="submit" class="logout-button">로그아웃</button>
+        </form>
     </nav>
 </header>
 

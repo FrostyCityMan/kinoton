@@ -136,10 +136,29 @@ a {
 }
 
 .top-nav {
+    align-items: center;
     display: flex;
     gap: 18px;
     color: #514b44;
     font-size: 14px;
+}
+
+.logout-form {
+    margin: 0;
+}
+
+.logout-button {
+    background: transparent;
+    border: 0;
+    color: #514b44;
+    cursor: pointer;
+    font: inherit;
+    padding: 0;
+}
+
+.logout-button:hover {
+    color: var(--accent);
+    font-weight: 700;
 }
 
 .notice {
