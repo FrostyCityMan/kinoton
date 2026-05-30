@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kinoton 오류 안내</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<main class="modal-page">
+    <section class="error-modal" role="dialog" aria-modal="true" aria-labelledby="error-modal-title">
+        <span class="summary-chip" th:text="${statusCode}">400</span>
+        <h1 id="error-modal-title" th:text="${title}">요청을 처리할 수 없습니다.</h1>
+        <p th:text="${message}">요청 값이 올바르지 않습니다.</p>
+        <div class="settings-actions">
+            <a class="secondary-action" th:href="${returnUrl}">이전 화면</a>
+            <a class="primary-action" th:href="@{/dashboard}">대시보드</a>
+        </div>
+    </section>
+</main>
+</body>
+</html>
