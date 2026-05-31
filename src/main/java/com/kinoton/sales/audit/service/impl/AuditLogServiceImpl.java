@@ -27,6 +27,7 @@ public class AuditLogServiceImpl implements AuditLogService {
         this.auditLogDao = auditLogDao;
     }
 
+
     /**
      * Inserts an audit log entry into the system.
      *
