@@ -195,12 +195,16 @@ jobs:
                   "if [ -f /home/ubuntu/app/app.env ]; then cut -d= -f1 /home/ubuntu/app/app.env; fi",
                   "echo PROCESS",
                   "ps -ef | grep java | grep -v grep || true",
+                  "echo SYSTEMD",
+                  "sudo systemctl status kinoton --no-pager || true",
                   "echo PORTS",
                   "ss -ltnp | grep 8080 || true",
                   "echo HEALTH",
                   "SERVER_PORT_VALUE=$(awk -F= '\''/^SERVER_PORT=/ {print $2; exit}'\'' /home/ubuntu/app/app.env 2>/dev/null); SERVER_PORT_VALUE=${SERVER_PORT_VALUE:-8080}; curl -i http://127.0.0.1:${SERVER_PORT_VALUE}/actuator/health || true",
                   "echo APP_LOG",
                   "tail -n 160 /home/ubuntu/app/app.log || true",
+                  "echo JOURNAL",
+                  "sudo journalctl -u kinoton -n 160 --no-pager || true",
                   "echo CODEDEPLOY_AGENT_LOG",
                   "sudo tail -n 120 /var/log/aws/codedeploy-agent/codedeploy-agent.log || true",
                   "echo CODEDEPLOY_DEPLOYMENT_LOG",
@@ -238,12 +242,16 @@ jobs:
                 "ls -la /home/ubuntu/app || true",
                 "echo PROCESS",
                 "ps -ef | grep java | grep -v grep || true",
+                "echo SYSTEMD",
+                "sudo systemctl status kinoton --no-pager || true",
                 "echo PORTS",
                 "ss -ltnp | grep 8080 || true",
                 "echo HEALTH",
                 "SERVER_PORT_VALUE=$(awk -F= '\''/^SERVER_PORT=/ {print $2; exit}'\'' /home/ubuntu/app/app.env 2>/dev/null); SERVER_PORT_VALUE=${SERVER_PORT_VALUE:-8080}; curl -i http://127.0.0.1:${SERVER_PORT_VALUE}/actuator/health || true",
                 "echo APP_LOG",
-                "tail -n 80 /home/ubuntu/app/app.log || true"
+                "tail -n 80 /home/ubuntu/app/app.log || true",
+                "echo JOURNAL",
+                "sudo journalctl -u kinoton -n 80 --no-pager || true"
               ]' \
               --query 'Command.CommandId' \
               --output text || true)"
