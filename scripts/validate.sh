@@ -31,7 +31,13 @@ fi
 SERVER_PORT="${SERVER_PORT:-8080}"
 HEALTH_PATH="${HEALTH_PATH:-/actuator/health}"
 HEALTH_URL="${HEALTH_URL:-http://127.0.0.1:${SERVER_PORT}${HEALTH_PATH}}"
-HEALTH_OUTPUT="/tmp/${SERVICE_NAME}-health.json"
+HEALTH_OUTPUT="$(mktemp -t "${SERVICE_NAME}-health.XXXXXX")"
+
+cleanup() {
+  rm -f "${HEALTH_OUTPUT}"
+}
+
+trap cleanup EXIT
 
 for _ in $(seq 1 60); do
   if systemctl is-active --quiet "${SERVICE_NAME}.service"; then

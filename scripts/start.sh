@@ -100,6 +100,8 @@ install_service_file() {
 Description=Kinoton Sales Management Application
 After=network-online.target
 Wants=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=10
 
 [Service]
 Type=simple
@@ -113,8 +115,6 @@ ExecStart=/usr/bin/env bash -lc 'exec "\${JAVA_BIN:-/usr/bin/java}" \${JAVA_OPTS
 SuccessExitStatus=143
 Restart=always
 RestartSec=10
-StartLimitIntervalSec=300
-StartLimitBurst=10
 StandardOutput=append:${LOG_FILE}
 StandardError=append:${LOG_FILE}
 SyslogIdentifier=${SERVICE_NAME}
