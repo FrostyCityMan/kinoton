@@ -12,6 +12,8 @@ PID_FILE="${PID_FILE:-${APP_DIR}/app.pid}"
 SERVICE_NAME="${SERVICE_NAME:-kinoton}"
 SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
 
+HEALTH_OUTPUT=""
+
 load_env_file() {
   while IFS= read -r line || [[ -n "${line}" ]]; do
     line="${line%$'\r'}"
@@ -46,6 +48,14 @@ require_env() {
     exit 1
   fi
 }
+
+cleanup() {
+  if [[ -n "${HEALTH_OUTPUT}" ]]; then
+    rm -f "${HEALTH_OUTPUT}"
+  fi
+}
+
+trap cleanup EXIT
 
 stop_legacy_processes() {
   local pids=""
@@ -139,6 +149,11 @@ require_env "DB_URL"
 require_env "DB_USERNAME"
 require_env "DB_PASSWORD"
 
+SERVER_PORT="${SERVER_PORT:-8080}"
+HEALTH_PATH="${HEALTH_PATH:-/actuator/health}"
+HEALTH_URL="${HEALTH_URL:-http://127.0.0.1:${SERVER_PORT}${HEALTH_PATH}}"
+HEALTH_OUTPUT="$(mktemp -t "${SERVICE_NAME}-startup-health.XXXXXX")"
+
 install -d -o "${APP_USER}" -g "${APP_GROUP}" "${APP_DIR}" "${LOG_DIR}"
 touch "${LOG_FILE}"
 chown "${APP_USER}:${APP_GROUP}" "${LOG_FILE}"
@@ -151,15 +166,30 @@ systemctl enable "${SERVICE_NAME}.service"
 systemctl reset-failed "${SERVICE_NAME}.service" || true
 systemctl restart "${SERVICE_NAME}.service"
 
-sleep 5
+for _ in $(seq 1 60); do
+  if ! systemctl is-active --quiet "${SERVICE_NAME}.service"; then
+    echo "Application service failed to start: ${SERVICE_NAME}.service" >&2
+    systemctl status "${SERVICE_NAME}.service" --no-pager >&2 || true
+    journalctl -u "${SERVICE_NAME}.service" -n 120 --no-pager >&2 || true
+    tail -n 120 "${LOG_FILE}" >&2 2>/dev/null || true
+    exit 1
+  fi
 
-if ! systemctl is-active --quiet "${SERVICE_NAME}.service"; then
-  echo "Application service failed to start: ${SERVICE_NAME}.service" >&2
-  systemctl status "${SERVICE_NAME}.service" --no-pager >&2 || true
-  journalctl -u "${SERVICE_NAME}.service" -n 120 --no-pager >&2 || true
-  tail -n 120 "${LOG_FILE}" >&2 2>/dev/null || true
-  exit 1
-fi
+  if curl -fsS "${HEALTH_URL}" > "${HEALTH_OUTPUT}" 2>/dev/null; then
+    if grep -q '"status":"UP"' "${HEALTH_OUTPUT}"; then
+      systemctl status "${SERVICE_NAME}.service" --no-pager
+      echo "Application service started: ${SERVICE_NAME}.service"
+      echo "Health check passed: ${HEALTH_URL}"
+      exit 0
+    fi
+  fi
 
-systemctl status "${SERVICE_NAME}.service" --no-pager
-echo "Application service started: ${SERVICE_NAME}.service"
+  sleep 2
+done
+
+echo "Application service started but health check did not pass: ${HEALTH_URL}" >&2
+cat "${HEALTH_OUTPUT}" >&2 2>/dev/null || true
+systemctl status "${SERVICE_NAME}.service" --no-pager >&2 || true
+journalctl -u "${SERVICE_NAME}.service" -n 120 --no-pager >&2 || true
+tail -n 120 "${LOG_FILE}" >&2 2>/dev/null || true
+exit 1
