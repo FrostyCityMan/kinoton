@@ -47,7 +47,7 @@
                            th:value="${newBusinessYear}"
                            required>
                 </label>
-                <button type="submit" class="secondary-action">연도 추가</button>
+                <button type="submit" class="secondary-action year-add-action">연도 추가</button>
             </form>
         </section>
 
@@ -68,7 +68,6 @@
                     <h2 th:text="${response.businessYear()} + '년 목표 입력'">2026년 목표 입력</h2>
                     <p>금액 단위는 억원이며, 0 이상 값만 저장할 수 있습니다.</p>
                 </div>
-                <a class="secondary-action" th:href="@{/dashboard(businessYear=${response.businessYear()})}">대시보드 확인</a>
             </div>
 
             <form th:action="@{/annual-targets}" th:object="${saveRequest}" method="post">

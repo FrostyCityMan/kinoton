@@ -1226,6 +1226,17 @@ a {
     max-width: 360px;
 }
 
+.year-add-action {
+    background: var(--teal);
+    border: 1px solid var(--teal);
+    color: #ffffff;
+}
+
+.year-add-action:hover {
+    background: #0b5f59;
+    border-color: #0b5f59;
+}
+
 .period-select-group {
     display: grid;
     gap: 8px;
