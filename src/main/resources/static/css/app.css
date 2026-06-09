@@ -91,12 +91,6 @@ a {
     object-fit: contain;
 }
 
-.header-logo {
-    border-radius: 4px;
-    max-width: 184px;
-    width: 184px;
-}
-
 .sidebar-logo {
     border-radius: 4px;
     max-width: 176px;
@@ -245,7 +239,7 @@ a {
 .module-grid {
     display: grid;
     gap: 14px;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     margin-bottom: 18px;
 }
 
@@ -272,6 +266,13 @@ a {
     display: block;
     font-size: 28px;
     line-height: 1.1;
+}
+
+.metric-card small {
+    color: var(--muted);
+    display: block;
+    font-size: 12px;
+    margin-top: 8px;
 }
 
 .module-card h2 {
@@ -337,7 +338,6 @@ a {
 
 .table-panel table {
     border-collapse: collapse;
-    min-width: 980px;
     width: 100%;
 }
 
@@ -345,9 +345,12 @@ a {
 .table-panel td {
     border-bottom: 1px solid var(--line);
     font-size: 14px;
+    max-width: 260px;
     padding: 14px 16px;
     text-align: left;
     vertical-align: middle;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
 }
 
 .table-panel th {
@@ -689,12 +692,6 @@ a {
     gap: 10px;
     justify-items: center;
     margin-bottom: 28px;
-}
-
-.login-logo {
-    border-radius: 4px;
-    max-width: 284px;
-    width: 100%;
 }
 
 .login-brand span {
@@ -1087,6 +1084,14 @@ a {
     padding: 18px;
 }
 
+.year-filter-panel {
+    align-items: end;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: space-between;
+}
+
 .report-filter-form {
     align-items: end;
     display: grid;
@@ -1113,6 +1118,43 @@ a {
     min-height: 42px;
     padding: 10px 12px;
     width: 100%;
+}
+
+.year-filter-panel .report-filter-form {
+    flex: 1;
+    grid-template-columns: minmax(160px, 220px) 100px auto;
+    max-width: 520px;
+}
+
+.year-create-form {
+    grid-template-columns: minmax(160px, 220px) 110px;
+    margin-top: 12px;
+    max-width: 360px;
+}
+
+.period-select-group {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: minmax(0, 1fr) minmax(92px, 120px);
+}
+
+.target-table-panel table {
+    min-width: 640px;
+}
+
+.target-table-panel input {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font: inherit;
+    max-width: 220px;
+    min-height: 38px;
+    padding: 8px 10px;
+    width: 100%;
+}
+
+.target-table-panel input:focus {
+    border-color: var(--accent);
+    outline: 3px solid #fff0e8;
 }
 
 .report-summary-table-panel {
@@ -1292,11 +1334,6 @@ a {
         padding: 14px 16px;
     }
 
-    .header-logo {
-        max-width: 160px;
-        width: 160px;
-    }
-
     .top-nav {
         justify-content: flex-start;
     }
@@ -1379,9 +1416,12 @@ a {
 
     .report-export-actions,
     .report-filter-form,
+    .year-filter-panel .report-filter-form,
+    .year-create-form,
     .audit-filter-form {
         align-items: stretch;
         grid-template-columns: 1fr;
+        max-width: none;
     }
 
     .report-export-actions a,

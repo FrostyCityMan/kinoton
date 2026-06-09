@@ -10,7 +10,7 @@
 </head>
 <body>
 <div class="app-shell">
-    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <aside th:replace="~{fragments/layout :: sidebar(activeMenu='reports')}"></aside>
     <main class="content">
         <header th:replace="~{fragments/layout :: header}"></header>
 
@@ -37,11 +37,25 @@
                 </label>
                 <label>
                     <span>기준연도</span>
-                    <input type="number" name="reportYear" min="2000" max="2100" th:value="${condition.reportYear}" placeholder="예: 2026">
+                    <select name="reportYear">
+                        <option th:each="year : ${years}"
+                                th:value="${year.businessYear}"
+                                th:text="${year.businessYear + '년'}"
+                                th:selected="${year.businessYear == condition.reportYear}">
+                            2026년
+                        </option>
+                    </select>
                 </label>
                 <label>
                     <span>기준월</span>
-                    <input type="number" name="reportMonth" min="1" max="12" th:value="${condition.reportMonth}" placeholder="1-12">
+                    <select name="reportMonth">
+                        <option th:each="month : ${months}"
+                                th:value="${month}"
+                                th:text="${month + '월'}"
+                                th:selected="${month == condition.reportMonth}">
+                            1월
+                        </option>
+                    </select>
                 </label>
                 <label>
                     <span>사업본부</span>

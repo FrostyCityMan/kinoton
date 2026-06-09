@@ -6,7 +6,7 @@ import org.springframework.security.core.Authentication;
 
 public interface DashboardService {
 
-    DashboardSummaryDto selectDashboardSummary(Authentication authentication);
+    DashboardSummaryDto selectDashboardSummary(Integer businessYear, Authentication authentication);
 
-    DashboardResponse selectDashboard(Authentication authentication);
+    DashboardResponse selectDashboard(Integer businessYear, Authentication authentication);
 }

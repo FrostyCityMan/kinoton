@@ -30,7 +30,7 @@
     </resultMap>
 
     <select id="selectEmployeeList" resultMap="EmployeeListItemMap">
-        -- 직원 마스터 목록을 조회한다.
+        -- 직원 목록을 조회한다.
         SELECT
             e.employee_id,
             d.code AS department_code,

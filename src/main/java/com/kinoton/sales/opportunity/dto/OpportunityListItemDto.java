@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 public class OpportunityListItemDto {
 
     private Long opportunityId;
+    private Integer salesYear;
     private String departmentCode;
     private String departmentName;
     private String customerName;
@@ -24,6 +25,14 @@ public class OpportunityListItemDto {
 
     public void setOpportunityId(Long opportunityId) {
         this.opportunityId = opportunityId;
+    }
+
+    public Integer getSalesYear() {
+        return salesYear;
+    }
+
+    public void setSalesYear(Integer salesYear) {
+        this.salesYear = salesYear;
     }
 
     public String getDepartmentCode() {

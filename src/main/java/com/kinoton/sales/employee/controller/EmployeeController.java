@@ -1,6 +1,5 @@
 package com.kinoton.sales.employee.controller;
 
-import com.kinoton.sales.common.exception.BusinessException;
 import com.kinoton.sales.common.response.ApiResponse;
 import com.kinoton.sales.employee.dto.EmployeeCreateRequest;
 import com.kinoton.sales.employee.dto.EmployeeManagementResponse;
@@ -11,14 +10,10 @@ import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
@@ -32,10 +27,8 @@ public class EmployeeController {
     }
 
     @GetMapping("/employees")
-    @PreAuthorize("hasRole('ADMIN')")
-    public String selectEmployeeManagementPage(Model model) {
-        addEmployeeManagementModel(model, new EmployeeCreateRequest());
-        return "employee/list";
+    public String redirectEmployeeManagementPage() {
+        return "redirect:/opportunities/new";
     }
 
     @GetMapping("/api/v1/employees")
@@ -51,31 +44,6 @@ public class EmployeeController {
         return ApiResponse.success(employeeService.selectEmployeeOptionList());
     }
 
-    @PostMapping("/employees")
-    @PreAuthorize("hasRole('ADMIN')")
-    public String insertEmployeePage(
-        @Valid @ModelAttribute("createRequest") EmployeeCreateRequest request,
-        BindingResult bindingResult,
-        Model model,
-        Authentication authentication,
-        RedirectAttributes redirectAttributes
-    ) {
-        if (bindingResult.hasErrors()) {
-            addEmployeeManagementModel(model, request);
-            return "employee/list";
-        }
-
-        try {
-            employeeService.insertEmployee(request, selectAuthenticatedUserId(authentication));
-            redirectAttributes.addFlashAttribute("message", "직원이 등록되었습니다.");
-            return "redirect:/employees";
-        } catch (BusinessException exception) {
-            addEmployeeManagementModel(model, request);
-            model.addAttribute("errorMessage", exception.getMessage());
-            return "employee/list";
-        }
-    }
-
     @PostMapping("/api/v1/employees")
     @PreAuthorize("hasRole('ADMIN')")
     @ResponseBody
@@ -87,13 +55,6 @@ public class EmployeeController {
             employeeService.insertEmployee(request, selectAuthenticatedUserId(authentication)),
             "직원이 등록되었습니다."
         );
-    }
-
-    private void addEmployeeManagementModel(Model model, EmployeeCreateRequest request) {
-        EmployeeManagementResponse response = employeeService.selectEmployeeManagement();
-        model.addAttribute("employees", response.employees());
-        model.addAttribute("departments", response.departments());
-        model.addAttribute("createRequest", request);
     }
 
     private Long selectAuthenticatedUserId(Authentication authentication) {

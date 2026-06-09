@@ -2,8 +2,7 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <body>
 <header th:fragment="header" class="app-header">
-    <div>
-        <img class="brand-logo header-logo" th:src="@{/images/kinoton_logo.png}" alt="Kinoton Imagineering Company">
+    <div class="header-title">
         <span class="subtitle">영업 관리 시스템</span>
     </div>
     <nav class="top-nav" aria-label="상단 메뉴">
@@ -17,22 +16,23 @@
     </nav>
 </header>
 
-<aside th:fragment="sidebar" class="sidebar">
+<aside th:fragment="sidebar(activeMenu)" class="sidebar">
     <div class="sidebar-brand">
         <img class="brand-logo sidebar-logo" th:src="@{/images/kinoton_logo.png}" alt="Kinoton Imagineering Company">
         <span>영업 관리 시스템</span>
     </div>
     <nav aria-label="계약 범위 메뉴">
-        <a class="active" th:href="@{/dashboard}">대시보드</a>
-        <a th:href="@{/opportunities/new}">영업 사이트 등록</a>
-        <a th:href="@{/opportunities}">영업 사이트 리스트</a>
-        <a th:href="@{/departments}">사업본부 관리</a>
-        <a th:href="@{/employees}">직원 마스터</a>
-        <a th:href="@{/probability-stages}">수주확률 설정</a>
-        <a th:href="@{/reports}">보고서/인쇄</a>
-        <a th:href="@{/users}">회원/권한 관리</a>
-        <a th:href="@{/access-logs}">접속 로그</a>
-        <a th:href="@{/audit-logs}">감사 로그</a>
+        <a th:classappend="${activeMenu == 'dashboard'} ? 'active'" th:href="@{/dashboard}">대시보드</a>
+        <a th:classappend="${activeMenu == 'annual-targets'} ? 'active'" th:href="@{/annual-targets}">연간 매출 목표</a>
+        <a th:classappend="${activeMenu == 'opportunity-create'} ? 'active'" th:href="@{/opportunities/new}">영업 사이트 등록</a>
+        <a th:classappend="${activeMenu == 'opportunity-list'} ? 'active'" th:href="@{/opportunities}">영업 사이트 리스트</a>
+        <a th:classappend="${activeMenu == 'customers'} ? 'active'" th:href="@{/customers}">고객사 관리</a>
+        <a th:classappend="${activeMenu == 'departments'} ? 'active'" th:href="@{/departments}">사업본부 관리</a>
+        <a th:classappend="${activeMenu == 'probability'} ? 'active'" th:href="@{/probability-stages}">수주확률 설정</a>
+        <a th:classappend="${activeMenu == 'reports'} ? 'active'" th:href="@{/reports}">영업 보고서</a>
+        <a th:classappend="${activeMenu == 'users'} ? 'active'" th:href="@{/users}">회원/권한 관리</a>
+        <a th:classappend="${activeMenu == 'access-logs'} ? 'active'" th:href="@{/access-logs}">접속 로그</a>
+        <a th:classappend="${activeMenu == 'audit-logs'} ? 'active'" th:href="@{/audit-logs}">감사 로그</a>
     </nav>
 </aside>
 

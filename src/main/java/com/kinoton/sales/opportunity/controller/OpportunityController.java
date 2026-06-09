@@ -3,6 +3,7 @@ package com.kinoton.sales.opportunity.controller;
 import com.kinoton.sales.attachment.service.AttachmentService;
 import com.kinoton.sales.common.exception.BusinessException;
 import com.kinoton.sales.common.response.ApiResponse;
+import com.kinoton.sales.customer.service.CustomerService;
 import com.kinoton.sales.employee.service.EmployeeService;
 import com.kinoton.sales.opportunity.dto.OpportunityCreateRequest;
 import com.kinoton.sales.opportunity.dto.OpportunityCreateResponse;
@@ -17,6 +18,7 @@ import com.kinoton.sales.opportunity.service.OpportunityService;
 import com.kinoton.sales.probability.service.ProbabilityStageService;
 import com.kinoton.sales.security.KinotonUserDetails;
 import com.kinoton.sales.user.service.UserManagementService;
+import com.kinoton.sales.year.service.BusinessYearService;
 import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -31,6 +33,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.stream.IntStream;
 
 @Controller
 public class OpportunityController {
@@ -40,19 +43,25 @@ public class OpportunityController {
     private final ProbabilityStageService probabilityStageService;
     private final EmployeeService employeeService;
     private final UserManagementService userManagementService;
+    private final CustomerService customerService;
+    private final BusinessYearService businessYearService;
 
     public OpportunityController(
         OpportunityService opportunityService,
         AttachmentService attachmentService,
         ProbabilityStageService probabilityStageService,
         EmployeeService employeeService,
-        UserManagementService userManagementService
+        UserManagementService userManagementService,
+        CustomerService customerService,
+        BusinessYearService businessYearService
     ) {
         this.opportunityService = opportunityService;
         this.attachmentService = attachmentService;
         this.probabilityStageService = probabilityStageService;
         this.employeeService = employeeService;
         this.userManagementService = userManagementService;
+        this.customerService = customerService;
+        this.businessYearService = businessYearService;
     }
 
     @GetMapping("/opportunities")
@@ -63,6 +72,7 @@ public class OpportunityController {
     ) {
         model.addAttribute("condition", condition);
         model.addAttribute("opportunities", opportunityService.selectOpportunityList(condition, authentication));
+        model.addAttribute("years", businessYearService.selectBusinessYearOptionList());
         return "opportunity/list";
     }
 
@@ -216,10 +226,22 @@ public class OpportunityController {
     }
 
     private void addOpportunityCreateModel(Model model, OpportunityCreateRequest request, Authentication authentication) {
+        if (request.getSalesYear() == null) {
+            request.setSalesYear(businessYearService.selectCurrentBusinessYear());
+        }
         model.addAttribute("createRequest", request);
         model.addAttribute("departments", probabilityStageService.selectWritableDepartmentOptionList(authentication));
         model.addAttribute("employees", employeeService.selectWritableEmployeeOptionList(authentication));
+        model.addAttribute("customers", customerService.selectActiveCustomerOptionList());
         model.addAttribute("allowedUsers", userManagementService.selectActiveUserOptionList());
         model.addAttribute("probabilityStages", probabilityStageService.selectProbabilityStageSetting().stages());
+        model.addAttribute("years", businessYearService.selectBusinessYearOptionList());
+        model.addAttribute("periodYears", selectPeriodYears(request.getSalesYear()));
+        model.addAttribute("quarters", List.of(1, 2, 3, 4));
+    }
+
+    private List<Integer> selectPeriodYears(Integer selectedYear) {
+        int baseYear = selectedYear == null ? businessYearService.selectCurrentBusinessYear() : selectedYear;
+        return IntStream.rangeClosed(baseYear, baseYear + 5).boxed().toList();
     }
 }

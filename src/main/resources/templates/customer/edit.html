@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kinoton 고객사 수정</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div class="app-shell">
+    <aside th:replace="~{fragments/layout :: sidebar(activeMenu='customers')}"></aside>
+    <main class="content">
+        <header th:replace="~{fragments/layout :: header}"></header>
+
+        <nav class="breadcrumb" aria-label="현재 위치">
+            <a th:href="@{/customers}">고객사 관리</a>
+            <span>수정</span>
+        </nav>
+
+        <section class="page-title">
+            <div>
+                <h1>고객사 수정</h1>
+                <p th:text="${customer.name}">고객사명</p>
+            </div>
+        </section>
+
+        <p th:if="${errorMessage}" class="form-error" th:text="${errorMessage}">처리 오류</p>
+
+        <section class="management-panel">
+            <form th:action="@{/customers/{id}(id=${customer.customerId})}"
+                  th:object="${updateRequest}"
+                  method="post"
+                  class="management-form">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                <div class="form-grid">
+                    <label>
+                        <span>고객사명</span>
+                        <input type="text" th:field="*{name}" required>
+                    </label>
+                    <label>
+                        <span>담당자명</span>
+                        <input type="text" th:field="*{contactName}">
+                    </label>
+                    <label>
+                        <span>연락처</span>
+                        <input type="text" th:field="*{phone}">
+                    </label>
+                </div>
+
+                <div class="form-grid">
+                    <label>
+                        <span>이메일</span>
+                        <input type="email" th:field="*{email}">
+                    </label>
+                    <label>
+                        <span>메모</span>
+                        <input type="text" th:field="*{memo}">
+                    </label>
+                    <label class="inline-check form-checkline">
+                        <input type="checkbox" th:field="*{active}">
+                        <span>활성</span>
+                    </label>
+                </div>
+
+                <div class="settings-actions">
+                    <a class="secondary-action" th:href="@{/customers}">취소</a>
+                    <button type="submit" class="primary-action">저장</button>
+                </div>
+            </form>
+        </section>
+
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </main>
+</div>
+</body>
+</html>

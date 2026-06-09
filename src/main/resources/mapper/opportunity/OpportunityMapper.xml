@@ -12,6 +12,7 @@
 
     <resultMap id="OpportunityListItemMap" type="com.kinoton.sales.opportunity.dto.OpportunityListItemDto">
         <id property="opportunityId" column="opportunity_id"/>
+        <result property="salesYear" column="sales_year"/>
         <result property="departmentCode" column="department_code"/>
         <result property="departmentName" column="department_name"/>
         <result property="customerName" column="customer_name"/>
@@ -28,6 +29,7 @@
 
     <resultMap id="OpportunityDetailsMap" type="com.kinoton.sales.opportunity.dto.OpportunityDetailsDto">
         <id property="opportunityId" column="opportunity_id"/>
+        <result property="salesYear" column="sales_year"/>
         <result property="departmentId" column="department_id"/>
         <result property="departmentCode" column="department_code"/>
         <result property="departmentName" column="department_name"/>
@@ -128,13 +130,19 @@
         -- 신규 영업 사이트를 등록한다.
         INSERT INTO opportunities (
             department_id,
+            sales_year,
+            customer_id,
             customer_name,
             project_name,
             owner_name,
             owner_employee_id,
             security_level,
             expected_order_period,
+            expected_order_year,
+            expected_order_quarter,
             expected_delivery_period,
+            expected_delivery_year,
+            expected_delivery_quarter,
             project_amount,
             probability_stage_id,
             status,
@@ -143,13 +151,19 @@
         )
         VALUES (
             #{departmentId},
+            #{salesYear},
+            #{customerId},
             #{customerName},
             #{projectName},
             #{ownerName},
             #{ownerEmployeeId},
             #{securityLevel},
             #{expectedOrderPeriod},
+            #{expectedOrderYear},
+            #{expectedOrderQuarter},
             #{expectedDeliveryPeriod},
+            #{expectedDeliveryYear},
+            #{expectedDeliveryQuarter},
             #{projectAmount},
             #{probabilityStageId},
             #{status},
@@ -231,9 +245,10 @@
         -- 영업 사이트 목록을 검색 조건에 따라 조회한다.
         SELECT
             o.opportunity_id,
+            o.sales_year,
             d.code AS department_code,
             d.name AS department_name,
-            o.customer_name,
+            COALESCE(c.name, o.customer_name) AS customer_name,
             o.project_name,
             o.security_level,
             o.expected_order_period,
@@ -248,9 +263,14 @@
             ON d.department_id = o.department_id
         INNER JOIN probability_stages ps
             ON ps.probability_stage_id = o.probability_stage_id
+        LEFT JOIN customers c
+            ON c.customer_id = o.customer_id
         <where>
             <include refid="DepartmentAccessPredicate"/>
             <include refid="ConfidentialAccessPredicate"/>
+            <if test="businessYear != null">
+                AND o.sales_year = #{businessYear}
+            </if>
             <if test="departmentCode != null and departmentCode != ''">
                 AND d.code = #{departmentCode}
             </if>
@@ -258,7 +278,25 @@
                 AND o.status = #{status}
             </if>
         </where>
-        ORDER BY o.created_at DESC, o.opportunity_id DESC
+        <choose>
+            <when test="sortKey == 'EXPECTED_ORDER_ASC'">
+                ORDER BY
+                    o.expected_order_year ASC NULLS LAST,
+                    o.expected_order_quarter ASC NULLS LAST,
+                    o.created_at DESC,
+                    o.opportunity_id DESC
+            </when>
+            <when test="sortKey == 'EXPECTED_DELIVERY_ASC'">
+                ORDER BY
+                    o.expected_delivery_year ASC NULLS LAST,
+                    o.expected_delivery_quarter ASC NULLS LAST,
+                    o.created_at DESC,
+                    o.opportunity_id DESC
+            </when>
+            <otherwise>
+                ORDER BY o.created_at DESC, o.opportunity_id DESC
+            </otherwise>
+        </choose>
     </select>
 
     <select id="selectOpportunityDetailsByAccess"
@@ -267,10 +305,11 @@
         -- 권한 범위 안에서 영업 사이트 상세 정보를 조회한다.
         SELECT
             o.opportunity_id,
+            o.sales_year,
             d.department_id,
             d.code AS department_code,
             d.name AS department_name,
-            o.customer_name,
+            COALESCE(c.name, o.customer_name) AS customer_name,
             o.project_name,
             o.owner_name,
             o.security_level,
@@ -285,6 +324,8 @@
             ON d.department_id = o.department_id
         INNER JOIN probability_stages ps
             ON ps.probability_stage_id = o.probability_stage_id
+        LEFT JOIN customers c
+            ON c.customer_id = o.customer_id
         WHERE o.opportunity_id = #{opportunityId}
         <include refid="DepartmentAccessPredicate"/>
         <include refid="ConfidentialAccessPredicate"/>
@@ -308,7 +349,7 @@
     <select id="selectOpportunityProgressCount"
             parameterType="com.kinoton.sales.opportunity.dto.OpportunityProgressLookupCondition"
             resultType="int">
-        -- ?곸뾽 ?ъ씠?몄뿉 ?띿븳 吏꾪뻾 湲곕줉 ?щ?瑜?寃利앺븳??.
+        -- 영업 사이트에 속한 진행 기록 여부를 검증한다.
         SELECT
             COUNT(1)
         FROM opportunity_progress op
@@ -331,6 +372,6 @@
         LEFT JOIN users u
             ON u.user_id = oec.created_by
         WHERE oec.opportunity_id = #{opportunityId}
-        ORDER BY oec.created_at DESC, oec.opportunity_executive_comment_id DESC
+        ORDER BY oec.created_at ASC, oec.opportunity_executive_comment_id ASC
     </select>
 </mapper>

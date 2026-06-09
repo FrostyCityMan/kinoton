@@ -2,6 +2,8 @@ package com.kinoton.sales.opportunity.service.impl;
 
 import com.kinoton.sales.audit.service.AuditLogService;
 import com.kinoton.sales.common.exception.BusinessException;
+import com.kinoton.sales.customer.dto.CustomerOptionDto;
+import com.kinoton.sales.customer.service.CustomerService;
 import com.kinoton.sales.employee.dto.EmployeeOptionDto;
 import com.kinoton.sales.employee.service.EmployeeService;
 import com.kinoton.sales.opportunity.dao.OpportunityDao;
@@ -27,6 +29,7 @@ import com.kinoton.sales.security.KinotonUserDetails;
 import com.kinoton.sales.security.DepartmentAccessService;
 import com.kinoton.sales.security.dto.DepartmentAccessScope;
 import com.kinoton.sales.user.service.UserManagementService;
+import com.kinoton.sales.year.service.BusinessYearService;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -56,19 +59,25 @@ public class OpportunityServiceImpl implements OpportunityService {
     private final AuditLogService auditLogService;
     private final EmployeeService employeeService;
     private final UserManagementService userManagementService;
+    private final CustomerService customerService;
+    private final BusinessYearService businessYearService;
 
     public OpportunityServiceImpl(
         OpportunityDao opportunityDao,
         DepartmentAccessService departmentAccessService,
         AuditLogService auditLogService,
         EmployeeService employeeService,
-        UserManagementService userManagementService
+        UserManagementService userManagementService,
+        CustomerService customerService,
+        BusinessYearService businessYearService
     ) {
         this.opportunityDao = opportunityDao;
         this.departmentAccessService = departmentAccessService;
         this.auditLogService = auditLogService;
         this.employeeService = employeeService;
         this.userManagementService = userManagementService;
+        this.customerService = customerService;
+        this.businessYearService = businessYearService;
     }
 
     @Override
@@ -91,17 +100,35 @@ public class OpportunityServiceImpl implements OpportunityService {
         }
 
         EmployeeOptionDto ownerEmployee = selectOwnerEmployee(request, authentication);
+        CustomerOptionDto customer = selectCustomer(request);
         String securityLevel = selectSecurityLevel(request.getSecurityLevel());
+        int salesYear = businessYearService.selectBusinessYear(request.getSalesYear());
 
         OpportunityCreateCommandDto command = new OpportunityCreateCommandDto();
         command.setDepartmentId(departmentId);
-        command.setCustomerName(request.getCustomerName());
+        command.setSalesYear(salesYear);
+        command.setCustomerId(customer == null ? null : customer.getCustomerId());
+        command.setCustomerName(selectCustomerName(request, customer));
         command.setProjectName(request.getProjectName());
         command.setOwnerName(selectOwnerName(request, ownerEmployee));
         command.setOwnerEmployeeId(ownerEmployee == null ? null : ownerEmployee.getEmployeeId());
         command.setSecurityLevel(securityLevel);
-        command.setExpectedOrderPeriod(request.getExpectedOrderPeriod());
-        command.setExpectedDeliveryPeriod(request.getExpectedDeliveryPeriod());
+        command.setExpectedOrderYear(request.getExpectedOrderYear());
+        command.setExpectedOrderQuarter(request.getExpectedOrderQuarter());
+        command.setExpectedOrderPeriod(selectPeriodLabel(
+            request.getExpectedOrderYear(),
+            request.getExpectedOrderQuarter(),
+            request.getExpectedOrderPeriod(),
+            "예상발주시기"
+        ));
+        command.setExpectedDeliveryYear(request.getExpectedDeliveryYear());
+        command.setExpectedDeliveryQuarter(request.getExpectedDeliveryQuarter());
+        command.setExpectedDeliveryPeriod(selectPeriodLabel(
+            request.getExpectedDeliveryYear(),
+            request.getExpectedDeliveryQuarter(),
+            request.getExpectedDeliveryPeriod(),
+            "예상구축시기"
+        ));
         command.setProjectAmount(request.getProjectAmount());
         command.setProbabilityStageId(probabilityStage.getProbabilityStageId());
         command.setStatus(DEFAULT_STATUS);
@@ -129,6 +156,41 @@ public class OpportunityServiceImpl implements OpportunityService {
         return new OpportunityCreateResponse(command.getOpportunityId());
     }
 
+    private CustomerOptionDto selectCustomer(OpportunityCreateRequest request) {
+        if (request.getCustomerId() == null) {
+            return null;
+        }
+
+        CustomerOptionDto customer = customerService.selectActiveCustomerDetails(request.getCustomerId());
+        if (customer == null) {
+            throw new BusinessException("선택한 고객사 정보를 찾을 수 없습니다.");
+        }
+        return customer;
+    }
+
+    private String selectCustomerName(OpportunityCreateRequest request, CustomerOptionDto customer) {
+        if (customer != null) {
+            return customer.getName();
+        }
+        if (StringUtils.hasText(request.getCustomerName())) {
+            return request.getCustomerName().trim();
+        }
+        throw new BusinessException("고객사를 선택해야 합니다.");
+    }
+
+    private String selectPeriodLabel(Integer year, Integer quarter, String fallback, String fieldName) {
+        if (year == null && quarter == null) {
+            return normalizeNullableText(fallback);
+        }
+        if (year == null || quarter == null) {
+            throw new BusinessException(fieldName + "는 연도와 분기를 함께 선택해야 합니다.");
+        }
+        if (year < 2000 || year > 2100 || quarter < 1 || quarter > 4) {
+            throw new BusinessException(fieldName + "가 유효하지 않습니다.");
+        }
+        return year + " " + quarter + "Q";
+    }
+
     private EmployeeOptionDto selectOwnerEmployee(OpportunityCreateRequest request, Authentication authentication) {
         if (request.getOwnerEmployeeId() == null) {
             return null;
@@ -153,12 +215,21 @@ public class OpportunityServiceImpl implements OpportunityService {
         return request.getOwnerName();
     }
 
+    private String normalizeNullableText(String value) {
+        if (!StringUtils.hasText(value)) {
+            return null;
+        }
+        return value.trim();
+    }
+
     @Override
     @Transactional(readOnly = true)
     public List<OpportunityListItemDto> selectOpportunityList(
         OpportunityListSearchCondition condition,
         Authentication authentication
     ) {
+        condition.setBusinessYear(businessYearService.selectBusinessYear(condition.getBusinessYear()));
+        condition.setSortKey(selectOpportunityListSortKey(condition.getSortKey()));
         DepartmentAccessScope readableScope = departmentAccessService.selectReadableScope(authentication);
         if (StringUtils.hasText(condition.getDepartmentCode()) && !readableScope.canAccess(condition.getDepartmentCode())) {
             departmentAccessService.validateReadableDepartment(condition.getDepartmentCode(), authentication);
@@ -168,6 +239,14 @@ public class OpportunityServiceImpl implements OpportunityService {
         condition.setUserId(readableScope.getUserId());
         condition.setAllConfidential(readableScope.isAllConfidential());
         return opportunityDao.selectOpportunityList(condition);
+    }
+
+    private String selectOpportunityListSortKey(String sortKey) {
+        if (OpportunityListSearchCondition.SORT_EXPECTED_ORDER_ASC.equals(sortKey)
+            || OpportunityListSearchCondition.SORT_EXPECTED_DELIVERY_ASC.equals(sortKey)) {
+            return sortKey;
+        }
+        return OpportunityListSearchCondition.SORT_CREATED_DESC;
     }
 
     @Override
@@ -352,14 +431,20 @@ public class OpportunityServiceImpl implements OpportunityService {
     ) {
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("opportunityId", command.getOpportunityId());
+        data.put("salesYear", command.getSalesYear());
         data.put("departmentCode", request.getDepartmentCode());
-        data.put("customerName", request.getCustomerName());
+        data.put("customerId", command.getCustomerId());
+        data.put("customerName", command.getCustomerName());
         data.put("projectName", request.getProjectName());
         data.put("ownerEmployeeId", command.getOwnerEmployeeId());
         data.put("ownerName", command.getOwnerName());
         data.put("securityLevel", command.getSecurityLevel());
-        data.put("expectedOrderPeriod", request.getExpectedOrderPeriod());
-        data.put("expectedDeliveryPeriod", request.getExpectedDeliveryPeriod());
+        data.put("expectedOrderPeriod", command.getExpectedOrderPeriod());
+        data.put("expectedOrderYear", command.getExpectedOrderYear());
+        data.put("expectedOrderQuarter", command.getExpectedOrderQuarter());
+        data.put("expectedDeliveryPeriod", command.getExpectedDeliveryPeriod());
+        data.put("expectedDeliveryYear", command.getExpectedDeliveryYear());
+        data.put("expectedDeliveryQuarter", command.getExpectedDeliveryQuarter());
         data.put("projectAmount", request.getProjectAmount());
         data.put("probability", probabilityStage.getProbability());
         data.put("probabilityStageName", probabilityStage.getName());

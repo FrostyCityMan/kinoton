@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kinoton.sales.customer.dao.CustomerDao">
+    <resultMap id="CustomerListItemMap" type="com.kinoton.sales.customer.dto.CustomerListItemDto">
+        <id property="customerId" column="customer_id"/>
+        <result property="name" column="name"/>
+        <result property="contactName" column="contact_name"/>
+        <result property="phone" column="phone"/>
+        <result property="email" column="email"/>
+        <result property="memo" column="memo"/>
+        <result property="active" column="is_active"/>
+        <result property="opportunityCount" column="opportunity_count"/>
+    </resultMap>
+
+    <resultMap id="CustomerOptionMap" type="com.kinoton.sales.customer.dto.CustomerOptionDto">
+        <id property="customerId" column="customer_id"/>
+        <result property="name" column="name"/>
+        <result property="contactName" column="contact_name"/>
+        <result property="phone" column="phone"/>
+    </resultMap>
+
+    <select id="selectCustomerList" resultMap="CustomerListItemMap">
+        -- 고객사 관리 목록을 조회한다.
+        SELECT
+            c.customer_id,
+            c.name,
+            c.contact_name,
+            c.phone,
+            c.email,
+            c.memo,
+            c.is_active,
+            COALESCE(oc.opportunity_count, 0) AS opportunity_count
+        FROM customers c
+        LEFT JOIN (
+            SELECT
+                o.customer_id,
+                COUNT(1) AS opportunity_count
+            FROM opportunities o
+            WHERE o.customer_id IS NOT NULL
+            GROUP BY o.customer_id
+        ) oc
+            ON oc.customer_id = c.customer_id
+        ORDER BY c.is_active DESC, c.name, c.customer_id
+    </select>
+
+    <select id="selectCustomerDetails" parameterType="long" resultMap="CustomerListItemMap">
+        -- 고객사 상세 정보를 조회한다.
+        SELECT
+            c.customer_id,
+            c.name,
+            c.contact_name,
+            c.phone,
+            c.email,
+            c.memo,
+            c.is_active,
+            COALESCE(oc.opportunity_count, 0) AS opportunity_count
+        FROM customers c
+        LEFT JOIN (
+            SELECT
+                o.customer_id,
+                COUNT(1) AS opportunity_count
+            FROM opportunities o
+            WHERE o.customer_id IS NOT NULL
+            GROUP BY o.customer_id
+        ) oc
+            ON oc.customer_id = c.customer_id
+        WHERE c.customer_id = #{customerId}
+    </select>
+
+    <select id="selectActiveCustomerDetails" parameterType="long" resultMap="CustomerOptionMap">
+        -- 영업 사이트 등록에서 선택한 활성 고객사 상세를 조회한다.
+        SELECT
+            c.customer_id,
+            c.name,
+            c.contact_name,
+            c.phone
+        FROM customers c
+        WHERE c.customer_id = #{customerId}
+          AND c.is_active = TRUE
+    </select>
+
+    <select id="selectActiveCustomerOptionList" resultMap="CustomerOptionMap">
+        -- 영업 사이트 등록에서 선택 가능한 활성 고객사 목록을 조회한다.
+        SELECT
+            c.customer_id,
+            c.name,
+            c.contact_name,
+            c.phone
+        FROM customers c
+        WHERE c.is_active = TRUE
+        ORDER BY c.name, c.customer_id
+    </select>
+
+    <insert id="insertCustomer"
+            parameterType="com.kinoton.sales.customer.dto.CustomerCommandDto"
+            useGeneratedKeys="true"
+            keyProperty="customerId"
+            keyColumn="customer_id">
+        -- 신규 고객사를 등록한다.
+        INSERT INTO customers (
+            name,
+            contact_name,
+            phone,
+            email,
+            memo,
+            is_active,
+            created_by,
+            updated_by
+        )
+        VALUES (
+            #{name},
+            #{contactName},
+            #{phone},
+            #{email},
+            #{memo},
+            #{active},
+            #{updatedBy},
+            #{updatedBy}
+        )
+    </insert>
+
+    <update id="updateCustomer"
+            parameterType="com.kinoton.sales.customer.dto.CustomerCommandDto">
+        -- 고객사 기본 정보를 수정한다.
+        UPDATE customers
+        SET
+            name = #{name},
+            contact_name = #{contactName},
+            phone = #{phone},
+            email = #{email},
+            memo = #{memo},
+            is_active = #{active},
+            updated_by = #{updatedBy},
+            updated_at = NOW()
+        WHERE customer_id = #{customerId}
+    </update>
+
+    <update id="deleteCustomer" parameterType="long">
+        -- 고객사를 비활성화한다.
+        UPDATE customers
+        SET
+            is_active = FALSE,
+            updated_at = NOW()
+        WHERE customer_id = #{customerId}
+    </update>
+</mapper>

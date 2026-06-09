@@ -8,19 +8,55 @@
 </head>
 <body>
 <div class="app-shell">
-    <aside th:replace="~{fragments/layout :: sidebar}"></aside>
+    <aside th:replace="~{fragments/layout :: sidebar(activeMenu='opportunity-list')}"></aside>
     <main class="content">
         <header th:replace="~{fragments/layout :: header}"></header>
 
         <section class="page-title">
             <div>
                 <h1>영업 사이트 리스트</h1>
-                <p>사업본부와 상태 기준으로 영업 건을 확인합니다.</p>
+                <p th:text="${condition.businessYear + '년 기준 영업 건을 확인합니다.'}">2026년 기준 영업 건을 확인합니다.</p>
             </div>
             <a class="primary-action" th:href="@{/opportunities/new}">+ 신규 등록</a>
         </section>
 
         <p th:if="${message}" class="form-message" th:text="${message}">처리되었습니다.</p>
+
+        <section class="report-filter-panel">
+            <form th:action="@{/opportunities}" method="get" class="report-filter-form">
+                <label>
+                    <span>관리 연도</span>
+                    <select name="businessYear">
+                        <option th:each="year : ${years}"
+                                th:value="${year.businessYear}"
+                                th:text="${year.businessYear + '년'}"
+                                th:selected="${year.businessYear == condition.businessYear}">
+                            2026년
+                        </option>
+                    </select>
+                </label>
+                <input type="hidden" name="departmentCode" th:value="${condition.departmentCode}">
+                <label>
+                    <span>상태</span>
+                    <select name="status">
+                        <option value="">전체</option>
+                        <option value="IN_PROGRESS" th:selected="${condition.status == 'IN_PROGRESS'}">진행중</option>
+                        <option value="WON" th:selected="${condition.status == 'WON'}">수주완료</option>
+                        <option value="HOLD" th:selected="${condition.status == 'HOLD'}">보류</option>
+                        <option value="LOST" th:selected="${condition.status == 'LOST'}">실주</option>
+                    </select>
+                </label>
+                <label>
+                    <span>정렬</span>
+                    <select name="sortKey">
+                        <option value="CREATED_DESC" th:selected="${condition.sortKey == 'CREATED_DESC'}">등록일 최신순</option>
+                        <option value="EXPECTED_ORDER_ASC" th:selected="${condition.sortKey == 'EXPECTED_ORDER_ASC'}">예상발주 빠른순</option>
+                        <option value="EXPECTED_DELIVERY_ASC" th:selected="${condition.sortKey == 'EXPECTED_DELIVERY_ASC'}">예상구축 빠른순</option>
+                    </select>
+                </label>
+                <button type="submit">조회</button>
+            </form>
+        </section>
 
         <section class="table-panel">
             <table>

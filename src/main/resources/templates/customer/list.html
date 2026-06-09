@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kinoton 고객사 관리</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div class="app-shell">
+    <aside th:replace="~{fragments/layout :: sidebar(activeMenu='customers')}"></aside>
+    <main class="content">
+        <header th:replace="~{fragments/layout :: header}"></header>
+
+        <section class="page-title">
+            <div>
+                <h1>고객사 관리</h1>
+                <p>영업 사이트 등록에서 선택할 고객사와 담당자 정보를 관리합니다.</p>
+            </div>
+        </section>
+
+        <p th:if="${message}" class="form-message" th:text="${message}">저장되었습니다.</p>
+        <p th:if="${errorMessage}" class="form-error" th:text="${errorMessage}">처리 오류</p>
+
+        <section class="management-panel">
+            <h2>신규 고객사 등록</h2>
+            <form th:action="@{/customers}" th:object="${createRequest}" method="post" class="management-form">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                <div class="form-grid">
+                    <label>
+                        <span>고객사명</span>
+                        <input type="text" th:field="*{name}" placeholder="예: CJ CGV" required>
+                    </label>
+                    <label>
+                        <span>담당자명</span>
+                        <input type="text" th:field="*{contactName}" placeholder="예: 홍길동">
+                    </label>
+                    <label>
+                        <span>연락처</span>
+                        <input type="text" th:field="*{phone}" placeholder="예: 01012345678">
+                    </label>
+                </div>
+
+                <div class="form-grid">
+                    <label>
+                        <span>이메일</span>
+                        <input type="email" th:field="*{email}" placeholder="예: customer@example.com">
+                    </label>
+                    <label>
+                        <span>메모</span>
+                        <input type="text" th:field="*{memo}" placeholder="계약/담당 부서 등 참고사항">
+                    </label>
+                    <label class="inline-check form-checkline">
+                        <input type="checkbox" th:field="*{active}">
+                        <span>활성</span>
+                    </label>
+                </div>
+
+                <div class="settings-actions">
+                    <button type="submit" class="primary-action">등록</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="table-panel user-table-panel">
+            <table>
+                <thead>
+                <tr>
+                    <th>고객사명</th>
+                    <th>담당자명</th>
+                    <th>연락처</th>
+                    <th>이메일</th>
+                    <th>참조</th>
+                    <th>상태</th>
+                    <th>관리</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="customer : ${customers}">
+                    <td th:text="${customer.name}">CJ CGV</td>
+                    <td th:text="${customer.contactName ?: '-'}">홍길동</td>
+                    <td th:text="${customer.phone ?: '-'}">010-0000-0000</td>
+                    <td th:text="${customer.email ?: '-'}">customer@example.com</td>
+                    <td>
+                        <span class="summary-chip" th:text="'영업 ' + ${customer.opportunityCount}">영업 0</span>
+                    </td>
+                    <td>
+                        <span class="stage-chip" th:text="${customer.active ? '활성' : '비활성'}">활성</span>
+                    </td>
+                    <td>
+                        <div class="table-actions">
+                            <a class="table-link" th:href="@{/customers/{id}(id=${customer.customerId})}">수정</a>
+                            <form th:if="${customer.opportunityCount == 0}"
+                                  th:action="@{/customers/{id}/delete(id=${customer.customerId})}"
+                                  method="post"
+                                  data-confirm-message="고객사를 삭제하시겠습니까?">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                <button type="submit" class="danger-action">삭제</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(customers)}">
+                    <td colspan="7" class="empty-cell">등록된 고객사가 없습니다.</td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </main>
+</div>
+<script th:src="@{/js/app.js}" defer></script>
+</body>
+</html>

@@ -166,7 +166,7 @@
             o.opportunity_id,
             d.code AS department_code,
             d.name AS department_name,
-            o.customer_name,
+            COALESCE(c.name, o.customer_name) AS customer_name,
             o.project_name,
             o.security_level,
             o.owner_name,
@@ -182,6 +182,8 @@
             ON d.department_id = o.department_id
         INNER JOIN probability_stages ps
             ON ps.probability_stage_id = o.probability_stage_id
+        LEFT JOIN customers c
+            ON c.customer_id = o.customer_id
         <where>
             <include refid="ReportSearchPredicate"/>
         </where>

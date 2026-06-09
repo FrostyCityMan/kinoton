@@ -6,13 +6,19 @@ public class OpportunityCreateCommandDto {
 
     private Long opportunityId;
     private Long departmentId;
+    private Integer salesYear;
+    private Long customerId;
     private String customerName;
     private String projectName;
     private String ownerName;
     private Long ownerEmployeeId;
     private String securityLevel;
     private String expectedOrderPeriod;
+    private Integer expectedOrderYear;
+    private Integer expectedOrderQuarter;
     private String expectedDeliveryPeriod;
+    private Integer expectedDeliveryYear;
+    private Integer expectedDeliveryQuarter;
     private BigDecimal projectAmount;
     private Long probabilityStageId;
     private String status;
@@ -32,6 +38,22 @@ public class OpportunityCreateCommandDto {
 
     public void setDepartmentId(Long departmentId) {
         this.departmentId = departmentId;
+    }
+
+    public Integer getSalesYear() {
+        return salesYear;
+    }
+
+    public void setSalesYear(Integer salesYear) {
+        this.salesYear = salesYear;
+    }
+
+    public Long getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(Long customerId) {
+        this.customerId = customerId;
     }
 
     public String getCustomerName() {
@@ -82,12 +104,44 @@ public class OpportunityCreateCommandDto {
         this.expectedOrderPeriod = expectedOrderPeriod;
     }
 
+    public Integer getExpectedOrderYear() {
+        return expectedOrderYear;
+    }
+
+    public void setExpectedOrderYear(Integer expectedOrderYear) {
+        this.expectedOrderYear = expectedOrderYear;
+    }
+
+    public Integer getExpectedOrderQuarter() {
+        return expectedOrderQuarter;
+    }
+
+    public void setExpectedOrderQuarter(Integer expectedOrderQuarter) {
+        this.expectedOrderQuarter = expectedOrderQuarter;
+    }
+
     public String getExpectedDeliveryPeriod() {
         return expectedDeliveryPeriod;
     }
 
     public void setExpectedDeliveryPeriod(String expectedDeliveryPeriod) {
         this.expectedDeliveryPeriod = expectedDeliveryPeriod;
+    }
+
+    public Integer getExpectedDeliveryYear() {
+        return expectedDeliveryYear;
+    }
+
+    public void setExpectedDeliveryYear(Integer expectedDeliveryYear) {
+        this.expectedDeliveryYear = expectedDeliveryYear;
+    }
+
+    public Integer getExpectedDeliveryQuarter() {
+        return expectedDeliveryQuarter;
+    }
+
+    public void setExpectedDeliveryQuarter(Integer expectedDeliveryQuarter) {
+        this.expectedDeliveryQuarter = expectedDeliveryQuarter;
     }
 
     public BigDecimal getProjectAmount() {

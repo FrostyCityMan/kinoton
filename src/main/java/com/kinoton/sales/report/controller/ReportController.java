@@ -5,6 +5,7 @@ import com.kinoton.sales.report.dto.OpportunityReportResponse;
 import com.kinoton.sales.report.dto.ReportFileResponse;
 import com.kinoton.sales.report.dto.ReportSearchCondition;
 import com.kinoton.sales.report.service.ReportService;
+import com.kinoton.sales.year.service.BusinessYearService;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -17,14 +18,18 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.stream.IntStream;
 
 @Controller
 public class ReportController {
 
     private final ReportService reportService;
+    private final BusinessYearService businessYearService;
 
-    public ReportController(ReportService reportService) {
+    public ReportController(ReportService reportService, BusinessYearService businessYearService) {
         this.reportService = reportService;
+        this.businessYearService = businessYearService;
     }
 
     @GetMapping("/reports")
@@ -39,6 +44,8 @@ public class ReportController {
         model.addAttribute("departmentSummaries", report.departmentSummaries());
         model.addAttribute("items", report.items());
         model.addAttribute("departments", report.departments());
+        model.addAttribute("years", businessYearService.selectBusinessYearOptionList());
+        model.addAttribute("months", selectMonths());
         return "report/opportunity";
     }
 
@@ -80,5 +87,9 @@ public class ReportController {
                     .toString()
             )
             .body(response.content());
+    }
+
+    private List<Integer> selectMonths() {
+        return IntStream.rangeClosed(1, 12).boxed().toList();
     }
 }

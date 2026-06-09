@@ -2,6 +2,7 @@ package com.kinoton.sales.employee.service.impl;
 
 import com.kinoton.sales.audit.service.AuditLogService;
 import com.kinoton.sales.common.exception.BusinessException;
+import com.kinoton.sales.common.util.PhoneNumberFormatter;
 import com.kinoton.sales.employee.dao.EmployeeDao;
 import com.kinoton.sales.employee.dto.EmployeeCreateCommandDto;
 import com.kinoton.sales.employee.dto.EmployeeCreateRequest;
@@ -78,7 +79,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         command.setName(request.getName());
         command.setPositionName(request.getPositionName());
         command.setEmail(normalizeNullableText(request.getEmail()));
-        command.setPhone(normalizeNullableText(request.getPhone()));
+        command.setPhone(PhoneNumberFormatter.normalize(request.getPhone()));
         command.setActive(request.isActive());
 
         try {

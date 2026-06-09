@@ -9,6 +9,7 @@
         <result property="departmentCode" column="department_code"/>
         <result property="departmentName" column="department_name"/>
         <result property="opportunityCount" column="opportunity_count"/>
+        <result property="targetAmount" column="target_amount"/>
         <result property="totalProjectAmount" column="total_project_amount"/>
         <result property="confirmedRevenueAmount" column="confirmed_revenue_amount"/>
         <result property="expectedRevenueAmount" column="expected_revenue_amount"/>
@@ -18,14 +19,15 @@
     </resultMap>
 
     <select id="selectDashboardDepartmentSummaryList"
-            parameterType="com.kinoton.sales.security.dto.DepartmentAccessScope"
+            parameterType="com.kinoton.sales.dashboard.dto.DashboardSearchCondition"
             resultMap="DashboardDepartmentSummaryMap">
-        -- 사업본부별 영업 현황 지표를 집계한다.
+        -- 선택 연도 기준 사업본부별 영업 현황과 목표 매출 지표를 집계한다.
         SELECT
             d.department_id,
             d.code AS department_code,
             d.name AS department_name,
             COUNT(o.opportunity_id) FILTER (WHERE o.status NOT IN ('HOLD', 'LOST')) AS opportunity_count,
+            COALESCE(art.target_amount, 0) AS target_amount,
             COALESCE(SUM(o.project_amount) FILTER (WHERE o.status NOT IN ('HOLD', 'LOST')), 0) AS total_project_amount,
             COALESCE(SUM(o.project_amount) FILTER (WHERE o.status NOT IN ('HOLD', 'LOST') AND ps.probability &gt;= 90), 0) AS confirmed_revenue_amount,
             COALESCE(SUM(o.project_amount) FILTER (WHERE o.status NOT IN ('HOLD', 'LOST') AND ps.probability &lt; 90), 0) AS expected_revenue_amount,
@@ -35,6 +37,7 @@
         FROM departments d
         LEFT JOIN opportunities o
             ON o.department_id = d.department_id
+            AND o.sales_year = #{businessYear}
             AND (
                 o.security_level = 'GENERAL'
                 OR #{allConfidential} = TRUE
@@ -47,6 +50,9 @@
             )
         LEFT JOIN probability_stages ps
             ON ps.probability_stage_id = o.probability_stage_id
+        LEFT JOIN annual_revenue_targets art
+            ON art.department_id = d.department_id
+           AND art.business_year = #{businessYear}
         WHERE d.is_active = TRUE
         <choose>
             <when test="allDepartments">
@@ -65,7 +71,8 @@
             d.department_id,
             d.code,
             d.name,
-            d.display_order
+            d.display_order,
+            art.target_amount
         ORDER BY d.display_order, d.department_id
     </select>
 </mapper>

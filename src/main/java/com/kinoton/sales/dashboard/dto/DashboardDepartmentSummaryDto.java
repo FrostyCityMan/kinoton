@@ -8,9 +8,12 @@ public class DashboardDepartmentSummaryDto {
     private String departmentCode;
     private String departmentName;
     private int opportunityCount;
+    private BigDecimal targetAmount = BigDecimal.ZERO;
     private BigDecimal totalProjectAmount = BigDecimal.ZERO;
     private BigDecimal confirmedRevenueAmount = BigDecimal.ZERO;
     private BigDecimal expectedRevenueAmount = BigDecimal.ZERO;
+    private BigDecimal forecastRevenueAmount = BigDecimal.ZERO;
+    private BigDecimal achievementRate = BigDecimal.ZERO;
     private int holdCount;
     private int lostCount;
     private BigDecimal holdLostAmount = BigDecimal.ZERO;
@@ -47,6 +50,14 @@ public class DashboardDepartmentSummaryDto {
         this.opportunityCount = opportunityCount;
     }
 
+    public BigDecimal getTargetAmount() {
+        return targetAmount;
+    }
+
+    public void setTargetAmount(BigDecimal targetAmount) {
+        this.targetAmount = targetAmount;
+    }
+
     public BigDecimal getTotalProjectAmount() {
         return totalProjectAmount;
     }
@@ -69,6 +80,22 @@ public class DashboardDepartmentSummaryDto {
 
     public void setExpectedRevenueAmount(BigDecimal expectedRevenueAmount) {
         this.expectedRevenueAmount = expectedRevenueAmount;
+    }
+
+    public BigDecimal getForecastRevenueAmount() {
+        return forecastRevenueAmount;
+    }
+
+    public void setForecastRevenueAmount(BigDecimal forecastRevenueAmount) {
+        this.forecastRevenueAmount = forecastRevenueAmount;
+    }
+
+    public BigDecimal getAchievementRate() {
+        return achievementRate;
+    }
+
+    public void setAchievementRate(BigDecimal achievementRate) {
+        this.achievementRate = achievementRate;
     }
 
     public int getHoldCount() {

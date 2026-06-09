@@ -10,13 +10,17 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
+import java.awt.GraphicsEnvironment;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class ReportPdfWriter {
@@ -24,6 +28,17 @@ public class ReportPdfWriter {
     private static final int WIDTH = 1600;
     private static final int ROW_HEIGHT = 42;
     private static final int TOP_PADDING = 60;
+    private static final String DEFAULT_FONT_FAMILY = "Dialog";
+    private static final List<String> KOREAN_FONT_FAMILY_CANDIDATES = List.of(
+        "Noto Sans CJK KR",
+        "Noto Sans KR",
+        "NanumGothic",
+        "Nanum Gothic",
+        "Malgun Gothic",
+        "Apple SD Gothic Neo",
+        "Baekmuk Dotum",
+        "UnDotum"
+    );
 
     public byte[] write(OpportunityReportResponse report) {
         try {
@@ -46,11 +61,12 @@ public class ReportPdfWriter {
         graphics.setColor(Color.WHITE);
         graphics.fillRect(0, 0, WIDTH, height);
 
-        Font titleFont = new Font("SansSerif", Font.BOLD, 34);
-        Font labelFont = new Font("SansSerif", Font.PLAIN, 20);
-        Font sectionFont = new Font("SansSerif", Font.BOLD, 22);
-        Font headerFont = new Font("SansSerif", Font.BOLD, 18);
-        Font bodyFont = new Font("SansSerif", Font.PLAIN, 17);
+        String fontFamily = selectReportFontFamily();
+        Font titleFont = new Font(fontFamily, Font.BOLD, 34);
+        Font labelFont = new Font(fontFamily, Font.PLAIN, 20);
+        Font sectionFont = new Font(fontFamily, Font.BOLD, 22);
+        Font headerFont = new Font(fontFamily, Font.BOLD, 18);
+        Font bodyFont = new Font(fontFamily, Font.PLAIN, 17);
 
         graphics.setColor(new Color(21, 21, 21));
         graphics.setFont(titleFont);
@@ -220,5 +236,17 @@ public class ReportPdfWriter {
 
     private String nullToBlank(String value) {
         return value == null ? "" : value;
+    }
+
+    private String selectReportFontFamily() {
+        Set<String> availableFonts = new HashSet<>(
+            Arrays.asList(GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames())
+        );
+        for (String candidate : KOREAN_FONT_FAMILY_CANDIDATES) {
+            if (availableFonts.contains(candidate)) {
+                return candidate;
+            }
+        }
+        return DEFAULT_FONT_FAMILY;
     }
 }

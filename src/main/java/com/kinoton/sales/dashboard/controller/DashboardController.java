@@ -8,6 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
@@ -20,22 +21,33 @@ public class DashboardController {
     }
 
     @GetMapping({"/", "/dashboard"})
-    public String selectDashboard(Model model, Authentication authentication) {
-        DashboardResponse dashboard = dashboardService.selectDashboard(authentication);
+    public String selectDashboard(
+        @RequestParam(value = "businessYear", required = false) Integer businessYear,
+        Model model,
+        Authentication authentication
+    ) {
+        DashboardResponse dashboard = dashboardService.selectDashboard(businessYear, authentication);
         model.addAttribute("summary", dashboard.summary());
         model.addAttribute("departments", dashboard.departments());
+        model.addAttribute("years", dashboard.years());
         return "dashboard/index";
     }
 
     @GetMapping("/api/v1/dashboard")
     @ResponseBody
-    public ApiResponse<DashboardResponse> selectDashboard(Authentication authentication) {
-        return ApiResponse.success(dashboardService.selectDashboard(authentication));
+    public ApiResponse<DashboardResponse> selectDashboard(
+        @RequestParam(value = "businessYear", required = false) Integer businessYear,
+        Authentication authentication
+    ) {
+        return ApiResponse.success(dashboardService.selectDashboard(businessYear, authentication));
     }
 
     @GetMapping("/api/v1/dashboard/summary")
     @ResponseBody
-    public ApiResponse<DashboardSummaryDto> selectDashboardSummary(Authentication authentication) {
-        return ApiResponse.success(dashboardService.selectDashboardSummary(authentication));
+    public ApiResponse<DashboardSummaryDto> selectDashboardSummary(
+        @RequestParam(value = "businessYear", required = false) Integer businessYear,
+        Authentication authentication
+    ) {
+        return ApiResponse.success(dashboardService.selectDashboardSummary(businessYear, authentication));
     }
 }

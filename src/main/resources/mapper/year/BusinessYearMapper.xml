@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kinoton.sales.year.dao.BusinessYearDao">
+    <resultMap id="BusinessYearOptionMap" type="com.kinoton.sales.year.dto.BusinessYearOptionDto">
+        <id property="businessYear" column="business_year"/>
+        <result property="active" column="is_active"/>
+    </resultMap>
+
+    <select id="selectBusinessYearOptionList" resultMap="BusinessYearOptionMap">
+        -- 선택 가능한 영업관리 연도 목록을 조회한다.
+        SELECT
+            bys.business_year,
+            bys.is_active
+        FROM business_years bys
+        WHERE bys.is_active = TRUE
+        ORDER BY bys.business_year DESC
+    </select>
+
+    <select id="selectBusinessYearDetails" parameterType="int" resultType="int">
+        -- 등록된 영업관리 연도를 조회한다.
+        SELECT
+            bys.business_year
+        FROM business_years bys
+        WHERE bys.business_year = #{businessYear}
+          AND bys.is_active = TRUE
+    </select>
+
+    <insert id="insertBusinessYear" parameterType="int">
+        -- 신규 영업관리 연도를 등록한다.
+        INSERT INTO business_years (
+            business_year
+        )
+        VALUES (
+            #{businessYear}
+        )
+    </insert>
+</mapper>
