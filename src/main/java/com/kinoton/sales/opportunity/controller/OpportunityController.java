@@ -237,6 +237,7 @@ public class OpportunityController {
         model.addAttribute("probabilityStages", probabilityStageService.selectProbabilityStageSetting().stages());
         model.addAttribute("years", businessYearService.selectBusinessYearOptionList());
         model.addAttribute("periodYears", selectPeriodYears(request.getSalesYear()));
+        model.addAttribute("months", IntStream.rangeClosed(1, 12).boxed().toList());
         model.addAttribute("quarters", List.of(1, 2, 3, 4));
     }
 

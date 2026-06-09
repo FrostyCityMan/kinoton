@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.kinoton.sales.revenue.dao.AnnualRevenueTargetDao">
+    <resultMap id="AnnualRevenueTargetRowMap" type="com.kinoton.sales.revenue.dto.AnnualRevenueTargetRowDto">
+        <id property="departmentId" column="department_id"/>
+        <result property="annualRevenueTargetId" column="annual_revenue_target_id"/>
+        <result property="businessYear" column="business_year"/>
+        <result property="departmentCode" column="department_code"/>
+        <result property="departmentName" column="department_name"/>
+        <result property="displayOrder" column="display_order"/>
+        <result property="targetAmount" column="target_amount"/>
+    </resultMap>
+
+    <select id="selectAnnualRevenueTargetList" parameterType="int" resultMap="AnnualRevenueTargetRowMap">
+        -- 선택 연도 기준 사업본부별 연간 매출 목표를 조회한다.
+        SELECT
+            art.annual_revenue_target_id,
+            CAST(#{businessYear} AS INTEGER) AS business_year,
+            d.department_id,
+            d.code AS department_code,
+            d.name AS department_name,
+            d.display_order,
+            COALESCE(art.target_amount, 0) AS target_amount
+        FROM departments d
+        LEFT JOIN annual_revenue_targets art
+            ON art.department_id = d.department_id
+           AND art.business_year = #{businessYear}
+        WHERE d.is_active = TRUE
+        ORDER BY d.display_order, d.department_id
+    </select>
+
+    <select id="selectActiveDepartmentCountByDepartmentId" parameterType="long" resultType="int">
+        -- 활성 사업본부 존재 여부를 조회한다.
+        SELECT
+            COUNT(1)
+        FROM departments d
+        WHERE d.department_id = #{departmentId}
+          AND d.is_active = TRUE
+    </select>
+
+    <insert id="saveAnnualRevenueTarget"
+            parameterType="com.kinoton.sales.revenue.dto.AnnualRevenueTargetCommandDto">
+        -- 사업본부별 연간 매출 목표를 등록 또는 수정한다.
+        INSERT INTO annual_revenue_targets (
+            business_year,
+            department_id,
+            target_amount,
+            created_by,
+            updated_by
+        )
+        VALUES (
+            #{businessYear},
+            #{departmentId},
+            #{targetAmount},
+            #{actorUserId},
+            #{actorUserId}
+        )
+        ON CONFLICT (business_year, department_id)
+        DO UPDATE SET
+            target_amount = EXCLUDED.target_amount,
+            updated_by = EXCLUDED.updated_by,
+            updated_at = NOW()
+    </insert>
+</mapper>

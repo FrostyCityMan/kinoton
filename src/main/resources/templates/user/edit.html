@@ -38,6 +38,20 @@
                         <span>이름</span>
                         <input type="text" th:field="*{name}" required>
                     </label>
+                    <label>
+                        <span>직위</span>
+                        <input type="text" th:field="*{position}" maxlength="100" placeholder="예: 팀장">
+                    </label>
+                    <label>
+                        <span>연락처</span>
+                        <input type="tel"
+                               th:field="*{phoneNumber}"
+                               maxlength="13"
+                               inputmode="numeric"
+                               pattern="[0-9]{3}-?[0-9]{4}-?[0-9]{4}"
+                               title="연락처는 000-0000-0000 형식의 11자리 숫자로 입력하세요."
+                               placeholder="예: 010-1234-5678">
+                    </label>
                     <label class="inline-check form-checkline">
                         <input type="checkbox" th:field="*{active}">
                         <span>활성</span>

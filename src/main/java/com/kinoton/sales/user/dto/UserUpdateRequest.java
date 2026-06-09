@@ -1,6 +1,7 @@
 package com.kinoton.sales.user.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +10,12 @@ public class UserUpdateRequest {
 
     @NotBlank
     private String name;
+
+    @Size(max = 100)
+    private String position;
+
+    @Size(max = 20)
+    private String phoneNumber;
 
     private boolean active;
     private boolean passwordResetRequired;
@@ -22,6 +29,22 @@ public class UserUpdateRequest {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getPosition() {
+        return position;
+    }
+
+    public void setPosition(String position) {
+        this.position = position;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public boolean isActive() {

@@ -114,6 +114,8 @@ public class UserManagementServiceImpl implements UserManagementService {
         command.setEmail(email);
         command.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         command.setName(request.getName());
+        command.setPosition(selectOptionalText(request.getPosition()));
+        command.setPhoneNumber(selectNormalizedPhoneNumber(request.getPhoneNumber()));
         command.setActive(request.isActive());
         command.setPasswordResetRequired(request.isPasswordResetRequired());
         userManagementDao.insertManagedUser(command);
@@ -153,6 +155,8 @@ public class UserManagementServiceImpl implements UserManagementService {
         UserUpdateCommandDto command = new UserUpdateCommandDto();
         command.setUserId(userId);
         command.setName(request.getName());
+        command.setPosition(selectOptionalText(request.getPosition()));
+        command.setPhoneNumber(selectNormalizedPhoneNumber(request.getPhoneNumber()));
         command.setActive(request.isActive());
         command.setPasswordResetRequired(request.isPasswordResetRequired());
         userManagementDao.updateManagedUser(command);
@@ -225,6 +229,25 @@ public class UserManagementServiceImpl implements UserManagementService {
             .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
+    private String selectOptionalText(String value) {
+        if (!StringUtils.hasText(value)) {
+            return null;
+        }
+        return value.trim();
+    }
+
+    private String selectNormalizedPhoneNumber(String value) {
+        if (!StringUtils.hasText(value)) {
+            return null;
+        }
+
+        String digits = value.replaceAll("[^0-9]", "");
+        if (digits.length() != 11) {
+            throw new BusinessException("연락처는 000-0000-0000 형식의 11자리 숫자로 입력해야 합니다.");
+        }
+        return digits.substring(0, 3) + "-" + digits.substring(3, 7) + "-" + digits.substring(7);
+    }
+
     private void saveUserAccess(Long userId, AccessAssignment accessAssignment) {
         userManagementDao.deleteUserRoleList(userId);
         for (String roleCode : accessAssignment.roleCodes()) {
@@ -251,6 +274,8 @@ public class UserManagementServiceImpl implements UserManagementService {
         data.put("userId", user.getUserId());
         data.put("email", user.getEmail());
         data.put("name", user.getName());
+        data.put("position", user.getPosition());
+        data.put("phoneNumber", user.getPhoneNumber());
         data.put("active", user.isActive());
         data.put("passwordResetRequired", user.isPasswordResetRequired());
         data.put("roleCodes", userManagementDao.selectManagedUserRoleCodeList(userId));

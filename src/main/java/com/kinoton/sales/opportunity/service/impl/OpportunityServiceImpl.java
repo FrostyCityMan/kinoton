@@ -114,10 +114,11 @@ public class OpportunityServiceImpl implements OpportunityService {
         command.setOwnerEmployeeId(ownerEmployee == null ? null : ownerEmployee.getEmployeeId());
         command.setSecurityLevel(securityLevel);
         command.setExpectedOrderYear(request.getExpectedOrderYear());
-        command.setExpectedOrderQuarter(request.getExpectedOrderQuarter());
-        command.setExpectedOrderPeriod(selectPeriodLabel(
+        command.setExpectedOrderMonth(request.getExpectedOrderMonth());
+        command.setExpectedOrderQuarter(null);
+        command.setExpectedOrderPeriod(selectMonthPeriodLabel(
             request.getExpectedOrderYear(),
-            request.getExpectedOrderQuarter(),
+            request.getExpectedOrderMonth(),
             request.getExpectedOrderPeriod(),
             "예상발주시기"
         ));
@@ -189,6 +190,19 @@ public class OpportunityServiceImpl implements OpportunityService {
             throw new BusinessException(fieldName + "가 유효하지 않습니다.");
         }
         return year + " " + quarter + "Q";
+    }
+
+    private String selectMonthPeriodLabel(Integer year, Integer month, String fallback, String fieldName) {
+        if (year == null && month == null) {
+            return normalizeNullableText(fallback);
+        }
+        if (year == null || month == null) {
+            throw new BusinessException(fieldName + "는 연도와 월을 함께 선택해야 합니다.");
+        }
+        if (year < 2000 || year > 2100 || month < 1 || month > 12) {
+            throw new BusinessException(fieldName + "가 유효하지 않습니다.");
+        }
+        return year + "년 " + month + "월";
     }
 
     private EmployeeOptionDto selectOwnerEmployee(OpportunityCreateRequest request, Authentication authentication) {
@@ -441,6 +455,7 @@ public class OpportunityServiceImpl implements OpportunityService {
         data.put("securityLevel", command.getSecurityLevel());
         data.put("expectedOrderPeriod", command.getExpectedOrderPeriod());
         data.put("expectedOrderYear", command.getExpectedOrderYear());
+        data.put("expectedOrderMonth", command.getExpectedOrderMonth());
         data.put("expectedOrderQuarter", command.getExpectedOrderQuarter());
         data.put("expectedDeliveryPeriod", command.getExpectedDeliveryPeriod());
         data.put("expectedDeliveryYear", command.getExpectedDeliveryYear());

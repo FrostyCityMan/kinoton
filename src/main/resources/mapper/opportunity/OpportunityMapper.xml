@@ -139,6 +139,7 @@
             security_level,
             expected_order_period,
             expected_order_year,
+            expected_order_month,
             expected_order_quarter,
             expected_delivery_period,
             expected_delivery_year,
@@ -160,6 +161,7 @@
             #{securityLevel},
             #{expectedOrderPeriod},
             #{expectedOrderYear},
+            #{expectedOrderMonth},
             #{expectedOrderQuarter},
             #{expectedDeliveryPeriod},
             #{expectedDeliveryYear},
@@ -282,7 +284,7 @@
             <when test="sortKey == 'EXPECTED_ORDER_ASC'">
                 ORDER BY
                     o.expected_order_year ASC NULLS LAST,
-                    o.expected_order_quarter ASC NULLS LAST,
+                    o.expected_order_month ASC NULLS LAST,
                     o.created_at DESC,
                     o.opportunity_id DESC
             </when>

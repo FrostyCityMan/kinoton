@@ -22,6 +22,10 @@ body {
     font-family: "Pretendard", "Segoe UI", Arial, sans-serif;
 }
 
+body.modal-open {
+    overflow: hidden;
+}
+
 .login-page {
     align-items: center;
     display: flex;
@@ -60,6 +64,91 @@ body {
     color: #3a352f;
     line-height: 1.6;
     margin: 0;
+}
+
+.feedback-modal-backdrop {
+    align-items: center;
+    background: rgba(21, 21, 21, 0.48);
+    display: flex;
+    inset: 0;
+    justify-content: center;
+    padding: 24px;
+    position: fixed;
+    z-index: 1000;
+}
+
+.feedback-modal-backdrop[hidden] {
+    display: none;
+}
+
+.feedback-modal {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: 0 24px 80px rgba(32, 25, 18, 0.24);
+    display: grid;
+    gap: 14px;
+    max-width: 480px;
+    padding: 24px;
+    width: min(100%, 480px);
+}
+
+.feedback-modal-header {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+}
+
+.feedback-modal-chip {
+    background: #fff0e7;
+    border-radius: 999px;
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 800;
+    padding: 5px 9px;
+}
+
+.feedback-modal-backdrop[data-feedback-modal-type="warning"] .feedback-modal-chip {
+    background: #fff0f0;
+    color: #a82222;
+}
+
+.feedback-modal-backdrop[data-feedback-modal-type="confirm"] .feedback-modal-chip {
+    background: #fff7df;
+    color: var(--amber);
+}
+
+.feedback-modal-close {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    border-radius: 8px;
+    color: var(--muted);
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 24px;
+    height: 32px;
+    justify-content: center;
+    line-height: 1;
+    width: 32px;
+}
+
+.feedback-modal h2 {
+    font-size: 21px;
+    margin: 0;
+}
+
+.feedback-modal p {
+    color: #3a352f;
+    line-height: 1.6;
+    margin: 0;
+    white-space: pre-line;
+}
+
+.feedback-modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
 }
 
 a {
@@ -845,7 +934,12 @@ a {
 }
 
 .form-grid.compact {
-    grid-template-columns: minmax(240px, 1fr) 160px 220px;
+    grid-template-columns: minmax(180px, 1fr) minmax(140px, 1fr) minmax(180px, 1fr) 120px 220px;
+}
+
+.create-form-panel .form-grid.compact {
+    column-gap: 8px;
+    grid-template-columns: minmax(180px, 220px) minmax(180px, 220px) minmax(220px, 1fr);
 }
 
 .form-grid label {

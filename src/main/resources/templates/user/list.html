@@ -38,6 +38,20 @@
                         <input type="text" th:field="*{name}" required>
                     </label>
                     <label>
+                        <span>직위</span>
+                        <input type="text" th:field="*{position}" maxlength="100" placeholder="예: 팀장">
+                    </label>
+                    <label>
+                        <span>연락처</span>
+                        <input type="tel"
+                               th:field="*{phoneNumber}"
+                               maxlength="13"
+                               inputmode="numeric"
+                               pattern="[0-9]{3}-?[0-9]{4}-?[0-9]{4}"
+                               title="연락처는 000-0000-0000 형식의 11자리 숫자로 입력하세요."
+                               placeholder="예: 010-1234-5678">
+                    </label>
+                    <label>
                         <span>초기 비밀번호</span>
                         <input type="password" th:field="*{password}" required>
                     </label>
@@ -93,6 +107,8 @@
                 <tr>
                     <th>이메일</th>
                     <th>이름</th>
+                    <th>직위</th>
+                    <th>연락처</th>
                     <th>역할</th>
                     <th>사업본부 권한</th>
                     <th>상태</th>
@@ -103,6 +119,8 @@
                 <tr th:each="user : ${users}">
                     <td th:text="${user.email}">admin@kinoton.local</td>
                     <td th:text="${user.name}">관리자</td>
+                    <td th:text="${#strings.isEmpty(user.position) ? '-' : user.position}">팀장</td>
+                    <td th:text="${#strings.isEmpty(user.phoneNumber) ? '-' : user.phoneNumber}">010-1234-5678</td>
                     <td th:text="${#strings.isEmpty(user.roleNames) ? '-' : user.roleNames}">관리자</td>
                     <td th:text="${#strings.isEmpty(user.departmentPermissionSummary) ? '-' : user.departmentPermissionSummary}">DE 사업본부</td>
                     <td>
@@ -114,7 +132,7 @@
                     </td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(users)}">
-                    <td colspan="6" class="empty-cell">등록된 사용자가 없습니다.</td>
+                    <td colspan="8" class="empty-cell">등록된 사용자가 없습니다.</td>
                 </tr>
                 </tbody>
             </table>

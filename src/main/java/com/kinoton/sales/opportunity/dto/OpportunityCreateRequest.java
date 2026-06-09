@@ -33,6 +33,8 @@ public class OpportunityCreateRequest {
 
     private Integer expectedOrderYear;
 
+    private Integer expectedOrderMonth;
+
     private Integer expectedOrderQuarter;
 
     private String expectedDeliveryPeriod;
@@ -134,6 +136,14 @@ public class OpportunityCreateRequest {
 
     public void setExpectedOrderYear(Integer expectedOrderYear) {
         this.expectedOrderYear = expectedOrderYear;
+    }
+
+    public Integer getExpectedOrderMonth() {
+        return expectedOrderMonth;
+    }
+
+    public void setExpectedOrderMonth(Integer expectedOrderMonth) {
+        this.expectedOrderMonth = expectedOrderMonth;
     }
 
     public Integer getExpectedOrderQuarter() {

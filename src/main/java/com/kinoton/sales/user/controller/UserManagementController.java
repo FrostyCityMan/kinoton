@@ -115,6 +115,8 @@ public class UserManagementController {
     private UserUpdateRequest selectUpdateRequest(UserEditResponse response) {
         UserUpdateRequest request = new UserUpdateRequest();
         request.setName(response.user().getName());
+        request.setPosition(response.user().getPosition());
+        request.setPhoneNumber(response.user().getPhoneNumber());
         request.setActive(response.user().isActive());
         request.setPasswordResetRequired(response.user().isPasswordResetRequired());
         request.setRoleCodes(response.selectedRoleCodes());

@@ -15,6 +15,7 @@ public class OpportunityCreateCommandDto {
     private String securityLevel;
     private String expectedOrderPeriod;
     private Integer expectedOrderYear;
+    private Integer expectedOrderMonth;
     private Integer expectedOrderQuarter;
     private String expectedDeliveryPeriod;
     private Integer expectedDeliveryYear;
@@ -110,6 +111,14 @@ public class OpportunityCreateCommandDto {
 
     public void setExpectedOrderYear(Integer expectedOrderYear) {
         this.expectedOrderYear = expectedOrderYear;
+    }
+
+    public Integer getExpectedOrderMonth() {
+        return expectedOrderMonth;
+    }
+
+    public void setExpectedOrderMonth(Integer expectedOrderMonth) {
+        this.expectedOrderMonth = expectedOrderMonth;
     }
 
     public Integer getExpectedOrderQuarter() {

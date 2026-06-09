@@ -117,11 +117,11 @@
                                         th:value="${year}"
                                         th:text="${year + '년'}">2026년</option>
                             </select>
-                            <select th:field="*{expectedOrderQuarter}">
-                                <option value="">분기</option>
-                                <option th:each="quarter : ${quarters}"
-                                        th:value="${quarter}"
-                                        th:text="${quarter + 'Q'}">1Q</option>
+                            <select th:field="*{expectedOrderMonth}">
+                                <option value="">월</option>
+                                <option th:each="month : ${months}"
+                                        th:value="${month}"
+                                        th:text="${month + '월'}">1월</option>
                             </select>
                         </span>
                     </label>
@@ -180,7 +180,6 @@
 
                 <div class="settings-actions">
                     <a class="secondary-action" th:href="@{/opportunities}">취소</a>
-                    <a class="secondary-action" th:href="@{/customers}">고객사 관리</a>
                     <button type="submit" class="primary-action">등록</button>
                 </div>
             </form>

@@ -6,6 +6,8 @@ public class UserCreateCommandDto {
     private String email;
     private String passwordHash;
     private String name;
+    private String position;
+    private String phoneNumber;
     private boolean active;
     private boolean passwordResetRequired;
 
@@ -39,6 +41,22 @@ public class UserCreateCommandDto {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getPosition() {
+        return position;
+    }
+
+    public void setPosition(String position) {
+        this.position = position;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public boolean isActive() {
