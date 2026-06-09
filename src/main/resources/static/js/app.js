@@ -21,7 +21,8 @@
             message: modal.querySelector("[data-feedback-modal-message]"),
             chip: modal.querySelector("[data-feedback-modal-chip]"),
             confirmButtons: modal.querySelectorAll("[data-feedback-modal-confirm]"),
-            cancelButtons: modal.querySelectorAll("[data-feedback-modal-cancel]")
+            cancelButtons: modal.querySelectorAll("[data-feedback-modal-cancel]"),
+            dismissButtons: modal.querySelectorAll("[data-feedback-modal-dismiss]")
         };
     }
 
@@ -52,7 +53,7 @@
         document.body.classList.add("modal-open");
 
         const focusTarget = options.hideConfirm === true
-            ? elements.cancelButtons[0]
+            ? (elements.cancelButtons[0] || elements.dismissButtons[0])
             : elements.confirmButtons[0];
         if (focusTarget) {
             focusTarget.focus();
@@ -204,6 +205,9 @@
             button.addEventListener("click", () => closeModal(modalState.confirmCallback));
         });
         elements.cancelButtons.forEach((button) => {
+            button.addEventListener("click", () => closeModal(modalState.cancelCallback));
+        });
+        elements.dismissButtons.forEach((button) => {
             button.addEventListener("click", () => closeModal(modalState.cancelCallback));
         });
         elements.modal.addEventListener("click", (event) => {
