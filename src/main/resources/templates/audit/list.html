@@ -60,7 +60,7 @@
             <table>
                 <thead>
                 <tr>
-                    <th><div class="audit-cell">일시</div></th>
+                    <th><div class="audit-cell">일시(한국시간)</div></th>
                     <th><div class="audit-cell">수행자</div></th>
                     <th><div class="audit-cell">작업</div></th>
                     <th><div class="audit-cell">대상</div></th>
@@ -72,7 +72,7 @@
                 <tbody>
                 <tr th:each="auditLog : ${auditLogs}">
                     <td>
-                        <div class="audit-cell" th:text="${#temporals.format(auditLog.createdAt, 'yyyy-MM-dd HH:mm:ss')}">2026-05-27 10:00:00</div>
+                        <div class="audit-cell" th:text="${#temporals.format(auditLog.createdAtKst, 'yyyy-MM-dd HH:mm:ss')}">2026-05-27 10:00:00</div>
                     </td>
                     <td>
                         <div class="audit-cell">

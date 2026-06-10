@@ -51,7 +51,7 @@
             <table>
                 <thead>
                 <tr>
-                    <th>일시</th>
+                    <th>일시(한국시간)</th>
                     <th>사용자</th>
                     <th>이벤트</th>
                     <th>IP</th>
@@ -61,7 +61,7 @@
                 </thead>
                 <tbody>
                 <tr th:each="accessLog : ${accessLogs}">
-                    <td th:text="${#temporals.format(accessLog.createdAt, 'yyyy-MM-dd HH:mm:ss')}">2026-05-27 10:00:00</td>
+                    <td th:text="${#temporals.format(accessLog.createdAtKst, 'yyyy-MM-dd HH:mm:ss')}">2026-05-27 10:00:00</td>
                     <td>
                         <strong th:text="${accessLog.actorDisplayName}">관리자</strong>
                         <span class="muted-inline" th:text="${accessLog.actorUserId != null ? '#' + accessLog.actorUserId : ''}">#1</span>

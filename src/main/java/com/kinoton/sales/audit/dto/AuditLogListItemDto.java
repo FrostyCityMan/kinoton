@@ -1,8 +1,12 @@
 package com.kinoton.sales.audit.dto;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 
 public class AuditLogListItemDto {
+
+    private static final ZoneId KOREA_ZONE = ZoneId.of("Asia/Seoul");
 
     private Long auditLogId;
     private Long actorUserId;
@@ -102,6 +106,13 @@ public class AuditLogListItemDto {
 
     public void setCreatedAt(OffsetDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getCreatedAtKst() {
+        if (createdAt == null) {
+            return null;
+        }
+        return createdAt.atZoneSameInstant(KOREA_ZONE).toLocalDateTime();
     }
 
     public String getActorDisplayName() {
