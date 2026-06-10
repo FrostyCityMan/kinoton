@@ -26,16 +26,16 @@
         </section>
 
         <section class="report-filter-panel">
-            <form th:action="@{/reports}" method="get" class="report-filter-form">
+            <form th:action="@{/reports}" method="get" class="report-filter-form" data-report-filter-form>
                 <label>
                     <span>기간 구분</span>
-                    <select name="periodType">
+                    <select name="periodType" data-report-period-type>
                         <option value="MONTHLY" th:selected="${condition.monthlyPeriod}">월간</option>
                         <option value="YEARLY" th:selected="${condition.yearlyPeriod}">연간</option>
                         <option value="ALL" th:selected="${condition.allPeriod}">전체</option>
                     </select>
                 </label>
-                <label>
+                <label data-report-year-field>
                     <span>기준연도</span>
                     <select name="reportYear">
                         <option th:each="year : ${years}"
@@ -46,7 +46,7 @@
                         </option>
                     </select>
                 </label>
-                <label>
+                <label data-report-month-field>
                     <span>기준월</span>
                     <select name="reportMonth">
                         <option th:each="month : ${months}"

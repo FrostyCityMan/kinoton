@@ -195,6 +195,35 @@
         });
     }
 
+    function bindReportPeriodForms() {
+        document.querySelectorAll("[data-report-filter-form]").forEach((form) => {
+            const periodTypeSelect = form.querySelector("[data-report-period-type]");
+            const yearField = form.querySelector("[data-report-year-field]");
+            const monthField = form.querySelector("[data-report-month-field]");
+            const yearSelect = yearField?.querySelector("select");
+            const monthSelect = monthField?.querySelector("select");
+
+            if (!periodTypeSelect || !yearField || !monthField || !yearSelect || !monthSelect) {
+                return;
+            }
+
+            const syncPeriodFields = () => {
+                const periodType = periodTypeSelect.value;
+                const isAll = periodType === "ALL";
+                const isMonthly = periodType === "MONTHLY";
+
+                yearField.hidden = isAll;
+                monthField.hidden = !isMonthly;
+                yearSelect.disabled = isAll;
+                monthSelect.disabled = !isMonthly;
+            };
+
+            periodTypeSelect.addEventListener("change", syncPeriodFields);
+            form.addEventListener("submit", syncPeriodFields);
+            syncPeriodFields();
+        });
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
         const elements = selectModalElements();
         if (!elements) {
@@ -223,6 +252,7 @@
         document.addEventListener("invalid", showValidationModal, true);
 
         bindConfirmForms();
+        bindReportPeriodForms();
         showInitialFeedback();
     });
 
