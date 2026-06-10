@@ -5,6 +5,7 @@ public class CustomerListItemDto {
     private Long customerId;
     private String name;
     private String contactName;
+    private String contactPosition;
     private String phone;
     private String email;
     private String memo;
@@ -33,6 +34,14 @@ public class CustomerListItemDto {
 
     public void setContactName(String contactName) {
         this.contactName = contactName;
+    }
+
+    public String getContactPosition() {
+        return contactPosition;
+    }
+
+    public void setContactPosition(String contactPosition) {
+        this.contactPosition = contactPosition;
     }
 
     public String getPhone() {

@@ -37,12 +37,16 @@
                         <input type="text" th:field="*{contactName}" placeholder="예: 홍길동">
                     </label>
                     <label>
-                        <span>연락처</span>
-                        <input type="text" th:field="*{phone}" placeholder="예: 01012345678">
+                        <span>직책</span>
+                        <input type="text" th:field="*{contactPosition}" maxlength="100" placeholder="예: 팀장">
                     </label>
                 </div>
 
                 <div class="form-grid">
+                    <label>
+                        <span>연락처</span>
+                        <input type="text" th:field="*{phone}" placeholder="예: 01012345678">
+                    </label>
                     <label>
                         <span>이메일</span>
                         <input type="email" th:field="*{email}" placeholder="예: customer@example.com">
@@ -69,6 +73,7 @@
                 <tr>
                     <th>고객사명</th>
                     <th>담당자명</th>
+                    <th>직책</th>
                     <th>연락처</th>
                     <th>이메일</th>
                     <th>참조</th>
@@ -80,6 +85,7 @@
                 <tr th:each="customer : ${customers}">
                     <td th:text="${customer.name}">CJ CGV</td>
                     <td th:text="${customer.contactName ?: '-'}">홍길동</td>
+                    <td th:text="${customer.contactPosition ?: '-'}">팀장</td>
                     <td th:text="${customer.phone ?: '-'}">010-0000-0000</td>
                     <td th:text="${customer.email ?: '-'}">customer@example.com</td>
                     <td>
@@ -102,7 +108,7 @@
                     </td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(customers)}">
-                    <td colspan="7" class="empty-cell">등록된 고객사가 없습니다.</td>
+                    <td colspan="8" class="empty-cell">등록된 고객사가 없습니다.</td>
                 </tr>
                 </tbody>
             </table>

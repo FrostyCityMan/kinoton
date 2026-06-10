@@ -110,6 +110,7 @@ public class CustomerServiceImpl implements CustomerService {
         CustomerCommandDto command = new CustomerCommandDto();
         command.setName(request.getName().trim());
         command.setContactName(normalizeNullableText(request.getContactName()));
+        command.setContactPosition(normalizeNullableText(request.getContactPosition()));
         command.setPhone(PhoneNumberFormatter.normalize(request.getPhone()));
         command.setEmail(normalizeNullableText(request.getEmail()));
         command.setMemo(normalizeNullableText(request.getMemo()));
@@ -130,6 +131,7 @@ public class CustomerServiceImpl implements CustomerService {
         data.put("customerId", customer.getCustomerId());
         data.put("name", customer.getName());
         data.put("contactName", customer.getContactName());
+        data.put("contactPosition", customer.getContactPosition());
         data.put("phone", customer.getPhone());
         data.put("email", customer.getEmail());
         data.put("memo", customer.getMemo());
@@ -142,6 +144,7 @@ public class CustomerServiceImpl implements CustomerService {
         data.put("customerId", command.getCustomerId());
         data.put("name", command.getName());
         data.put("contactName", command.getContactName());
+        data.put("contactPosition", command.getContactPosition());
         data.put("phone", command.getPhone());
         data.put("email", command.getEmail());
         data.put("memo", command.getMemo());

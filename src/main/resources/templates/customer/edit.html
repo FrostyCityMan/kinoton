@@ -43,12 +43,16 @@
                         <input type="text" th:field="*{contactName}">
                     </label>
                     <label>
-                        <span>연락처</span>
-                        <input type="text" th:field="*{phone}">
+                        <span>직책</span>
+                        <input type="text" th:field="*{contactPosition}" maxlength="100">
                     </label>
                 </div>
 
                 <div class="form-grid">
+                    <label>
+                        <span>연락처</span>
+                        <input type="text" th:field="*{phone}">
+                    </label>
                     <label>
                         <span>이메일</span>
                         <input type="email" th:field="*{email}">

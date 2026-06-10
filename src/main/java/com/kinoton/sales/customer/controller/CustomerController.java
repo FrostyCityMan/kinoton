@@ -70,6 +70,7 @@ public class CustomerController {
         CustomerUpdateRequest request = new CustomerUpdateRequest();
         request.setName(customer.getName());
         request.setContactName(customer.getContactName());
+        request.setContactPosition(customer.getContactPosition());
         request.setPhone(customer.getPhone());
         request.setEmail(customer.getEmail());
         request.setMemo(customer.getMemo());
