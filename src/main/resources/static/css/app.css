@@ -1004,6 +1004,13 @@ a {
     min-height: 42px;
 }
 
+.form-grid label.form-checkline {
+    align-items: center;
+    display: inline-flex;
+    flex-direction: row;
+    gap: 8px;
+}
+
 .permission-grid {
     border: 1px solid var(--line);
     border-radius: 8px;
