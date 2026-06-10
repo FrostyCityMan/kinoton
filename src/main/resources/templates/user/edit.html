@@ -29,11 +29,11 @@
         <p th:if="${message}" class="form-message" th:text="${message}">저장되었습니다.</p>
 
         <section class="management-panel">
-            <h2>사용자 권한 수정</h2>
+            <h2>사용자/직원 정보 수정</h2>
             <form th:action="@{/users/{id}(id=${user.userId})}" th:object="${updateRequest}" method="post" class="management-form">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
-                <div class="form-grid compact">
+                <div class="form-grid user-basic-grid">
                     <label>
                         <span>이름</span>
                         <input type="text" th:field="*{name}" required>
@@ -52,6 +52,9 @@
                                title="연락처는 000-0000-0000 형식의 11자리 숫자로 입력하세요."
                                placeholder="예: 010-1234-5678">
                     </label>
+                </div>
+
+                <div class="checkbox-grid user-status-grid">
                     <label class="inline-check form-checkline">
                         <input type="checkbox" th:field="*{active}">
                         <span>활성</span>

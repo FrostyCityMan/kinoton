@@ -12,6 +12,7 @@ public class OpportunityCreateCommandDto {
     private String projectName;
     private String ownerName;
     private Long ownerEmployeeId;
+    private Long ownerUserId;
     private String securityLevel;
     private String expectedOrderPeriod;
     private Integer expectedOrderYear;
@@ -24,6 +25,7 @@ public class OpportunityCreateCommandDto {
     private Long probabilityStageId;
     private String status;
     private Long createdBy;
+    private Long updatedBy;
 
     public Long getOpportunityId() {
         return opportunityId;
@@ -87,6 +89,14 @@ public class OpportunityCreateCommandDto {
 
     public void setOwnerEmployeeId(Long ownerEmployeeId) {
         this.ownerEmployeeId = ownerEmployeeId;
+    }
+
+    public Long getOwnerUserId() {
+        return ownerUserId;
+    }
+
+    public void setOwnerUserId(Long ownerUserId) {
+        this.ownerUserId = ownerUserId;
     }
 
     public String getSecurityLevel() {
@@ -183,5 +193,13 @@ public class OpportunityCreateCommandDto {
 
     public void setCreatedBy(Long createdBy) {
         this.createdBy = createdBy;
+    }
+
+    public Long getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(Long updatedBy) {
+        this.updatedBy = updatedBy;
     }
 }

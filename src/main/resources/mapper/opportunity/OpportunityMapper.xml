@@ -33,12 +33,18 @@
         <result property="departmentId" column="department_id"/>
         <result property="departmentCode" column="department_code"/>
         <result property="departmentName" column="department_name"/>
+        <result property="customerId" column="customer_id"/>
         <result property="customerName" column="customer_name"/>
         <result property="projectName" column="project_name"/>
+        <result property="ownerUserId" column="owner_user_id"/>
         <result property="ownerName" column="owner_name"/>
         <result property="securityLevel" column="security_level"/>
         <result property="expectedOrderPeriod" column="expected_order_period"/>
+        <result property="expectedOrderYear" column="expected_order_year"/>
+        <result property="expectedOrderMonth" column="expected_order_month"/>
         <result property="expectedDeliveryPeriod" column="expected_delivery_period"/>
+        <result property="expectedDeliveryYear" column="expected_delivery_year"/>
+        <result property="expectedDeliveryQuarter" column="expected_delivery_quarter"/>
         <result property="projectAmount" column="project_amount"/>
         <result property="status" column="status"/>
         <result property="probability" column="probability"/>
@@ -136,6 +142,7 @@
             project_name,
             owner_name,
             owner_employee_id,
+            owner_user_id,
             security_level,
             expected_order_period,
             expected_order_year,
@@ -158,6 +165,7 @@
             #{projectName},
             #{ownerName},
             #{ownerEmployeeId},
+            #{ownerUserId},
             #{securityLevel},
             #{expectedOrderPeriod},
             #{expectedOrderYear},
@@ -189,6 +197,12 @@
         )
         ON CONFLICT (opportunity_id, user_id) DO NOTHING
     </insert>
+
+    <delete id="deleteOpportunityViewPermissionList" parameterType="long">
+        -- 보안 프로젝트 열람 허용 사용자를 전체 삭제한다.
+        DELETE FROM opportunity_view_permissions
+        WHERE opportunity_id = #{opportunityId}
+    </delete>
 
     <insert id="insertOpportunityProgress"
             parameterType="com.kinoton.sales.opportunity.dto.OpportunityProgressCreateCommandDto"
@@ -235,6 +249,34 @@
         -- 최신 영업 진행 기록의 수주확률 단계를 영업 사이트 현재 단계에 반영한다.
         UPDATE opportunities
         SET
+            probability_stage_id = #{probabilityStageId},
+            updated_by = #{updatedBy},
+            updated_at = NOW()
+        WHERE opportunity_id = #{opportunityId}
+    </update>
+
+    <update id="updateOpportunity"
+            parameterType="com.kinoton.sales.opportunity.dto.OpportunityCreateCommandDto">
+        -- 영업 사이트 기본 정보를 수정한다.
+        UPDATE opportunities
+        SET
+            department_id = #{departmentId},
+            sales_year = #{salesYear},
+            customer_id = #{customerId},
+            customer_name = #{customerName},
+            project_name = #{projectName},
+            owner_name = #{ownerName},
+            owner_employee_id = #{ownerEmployeeId},
+            owner_user_id = #{ownerUserId},
+            security_level = #{securityLevel},
+            expected_order_period = #{expectedOrderPeriod},
+            expected_order_year = #{expectedOrderYear},
+            expected_order_month = #{expectedOrderMonth},
+            expected_order_quarter = #{expectedOrderQuarter},
+            expected_delivery_period = #{expectedDeliveryPeriod},
+            expected_delivery_year = #{expectedDeliveryYear},
+            expected_delivery_quarter = #{expectedDeliveryQuarter},
+            project_amount = #{projectAmount},
             probability_stage_id = #{probabilityStageId},
             updated_by = #{updatedBy},
             updated_at = NOW()
@@ -311,12 +353,18 @@
             d.department_id,
             d.code AS department_code,
             d.name AS department_name,
+            o.customer_id,
             COALESCE(c.name, o.customer_name) AS customer_name,
             o.project_name,
+            o.owner_user_id,
             o.owner_name,
             o.security_level,
             o.expected_order_period,
+            o.expected_order_year,
+            o.expected_order_month,
             o.expected_delivery_period,
+            o.expected_delivery_year,
+            o.expected_delivery_quarter,
             o.project_amount,
             o.status,
             ps.probability,
@@ -331,6 +379,15 @@
         WHERE o.opportunity_id = #{opportunityId}
         <include refid="DepartmentAccessPredicate"/>
         <include refid="ConfidentialAccessPredicate"/>
+    </select>
+
+    <select id="selectOpportunityViewPermissionUserIdList" parameterType="long" resultType="long">
+        -- 영업 사이트에 등록된 열람 허용 사용자 식별자를 조회한다.
+        SELECT
+            ovp.user_id
+        FROM opportunity_view_permissions ovp
+        WHERE ovp.opportunity_id = #{opportunityId}
+        ORDER BY ovp.user_id
     </select>
 
     <select id="selectOpportunityProgressList" parameterType="long" resultMap="OpportunityProgressItemMap">

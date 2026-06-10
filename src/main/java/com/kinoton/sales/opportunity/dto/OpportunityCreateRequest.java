@@ -22,6 +22,8 @@ public class OpportunityCreateRequest {
 
     private Long ownerEmployeeId;
 
+    private Long ownerUserId;
+
     @NotBlank
     private String projectName;
 
@@ -96,6 +98,14 @@ public class OpportunityCreateRequest {
 
     public void setOwnerEmployeeId(Long ownerEmployeeId) {
         this.ownerEmployeeId = ownerEmployeeId;
+    }
+
+    public Long getOwnerUserId() {
+        return ownerUserId;
+    }
+
+    public void setOwnerUserId(Long ownerUserId) {
+        this.ownerUserId = ownerUserId;
     }
 
     public String getProjectName() {

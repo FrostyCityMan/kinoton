@@ -29,6 +29,8 @@
                 <span>현재 수주확률</span>
                 <strong th:text="${details.probability + '%'}">10%</strong>
                 <small th:text="${details.probabilityStageName}">영업 시작</small>
+                <a class="secondary-action detail-edit-action"
+                   th:href="@{/opportunities/{id}/edit(id=${details.opportunityId})}">정보 수정</a>
             </div>
         </section>
 

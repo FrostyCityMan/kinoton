@@ -510,6 +510,7 @@ a {
 
 .probability-panel {
     display: grid;
+    gap: 8px;
     min-width: 140px;
     text-align: right;
 }
@@ -525,6 +526,11 @@ a {
     color: var(--accent);
     font-size: 34px;
     line-height: 1.1;
+}
+
+.detail-edit-action {
+    justify-self: end;
+    margin-top: 4px;
 }
 
 .detail-grid {
@@ -937,6 +943,15 @@ a {
     grid-template-columns: minmax(180px, 1fr) minmax(140px, 1fr) minmax(180px, 1fr) 120px 220px;
 }
 
+.user-basic-grid {
+    grid-template-columns: repeat(3, minmax(180px, 1fr));
+}
+
+.user-status-grid {
+    border-top: 1px solid var(--line);
+    padding-top: 12px;
+}
+
 .create-form-panel .form-grid.compact {
     column-gap: 8px;
     grid-template-columns: minmax(180px, 220px) minmax(180px, 220px) minmax(220px, 1fr);
@@ -1220,6 +1235,11 @@ a {
     max-width: 520px;
 }
 
+.opportunity-filter-form {
+    grid-template-columns: minmax(150px, 190px) minmax(150px, 190px) minmax(220px, 280px) 260px;
+    max-width: 920px;
+}
+
 .year-create-form {
     grid-template-columns: minmax(160px, 220px) 110px;
     margin-top: 12px;
@@ -1272,6 +1292,10 @@ a {
 
 .report-table-panel table {
     min-width: 1220px;
+}
+
+.opportunity-table-panel table {
+    min-width: 1360px;
 }
 
 .audit-filter-panel {

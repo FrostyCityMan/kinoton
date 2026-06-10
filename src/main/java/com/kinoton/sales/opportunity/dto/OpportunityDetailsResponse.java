@@ -7,6 +7,7 @@ public record OpportunityDetailsResponse(
     List<OpportunityProgressItemDto> progressList,
     List<ProbabilityStageSimpleDto> probabilityStages,
     List<OpportunityExecutiveCommentItemDto> executiveComments,
+    List<Long> allowedUserIds,
     boolean canWriteExecutiveComment
 ) {
 }

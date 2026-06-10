@@ -28,7 +28,7 @@ public class EmployeeController {
 
     @GetMapping("/employees")
     public String redirectEmployeeManagementPage() {
-        return "redirect:/opportunities/new";
+        return "redirect:/users";
     }
 
     @GetMapping("/api/v1/employees")

@@ -23,7 +23,7 @@
         <p th:if="${message}" class="form-message" th:text="${message}">처리되었습니다.</p>
 
         <section class="report-filter-panel">
-            <form th:action="@{/opportunities}" method="get" class="report-filter-form">
+            <form th:action="@{/opportunities}" method="get" class="report-filter-form opportunity-filter-form">
                 <label>
                     <span>관리 연도</span>
                     <select name="businessYear">
@@ -58,7 +58,7 @@
             </form>
         </section>
 
-        <section class="table-panel">
+        <section class="table-panel opportunity-table-panel">
             <table>
                 <thead>
                 <tr>
@@ -72,6 +72,7 @@
                     <th>담당자</th>
                     <th>상태</th>
                     <th>수주확률</th>
+                    <th>관리</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -103,9 +104,12 @@
                             10% 영업 시작
                         </span>
                     </td>
+                    <td>
+                        <a class="table-link" th:href="@{/opportunities/{id}/edit(id=${opportunity.opportunityId})}">수정</a>
+                    </td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(opportunities)}">
-                    <td colspan="10" class="empty-cell">등록된 영업 사이트가 없습니다.</td>
+                    <td colspan="11" class="empty-cell">등록된 영업 사이트가 없습니다.</td>
                 </tr>
                 </tbody>
             </table>

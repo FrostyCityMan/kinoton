@@ -30,15 +30,21 @@ public interface OpportunityDao {
 
     void insertOpportunityViewPermission(OpportunityViewPermissionCommandDto command);
 
+    void deleteOpportunityViewPermissionList(Long opportunityId);
+
     void insertOpportunityProgress(OpportunityProgressCreateCommandDto command);
 
     void insertOpportunityExecutiveComment(OpportunityExecutiveCommentCreateCommandDto command);
 
     void updateOpportunityProbabilityStage(OpportunityStageUpdateCommandDto command);
 
+    void updateOpportunity(OpportunityCreateCommandDto command);
+
     List<OpportunityListItemDto> selectOpportunityList(OpportunityListSearchCondition condition);
 
     OpportunityDetailsDto selectOpportunityDetailsByAccess(OpportunityAccessCondition condition);
+
+    List<Long> selectOpportunityViewPermissionUserIdList(Long opportunityId);
 
     List<OpportunityProgressItemDto> selectOpportunityProgressList(Long opportunityId);
 

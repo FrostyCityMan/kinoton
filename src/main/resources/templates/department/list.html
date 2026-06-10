@@ -15,7 +15,7 @@
         <section class="page-title">
             <div>
                 <h1>사업본부 관리</h1>
-                <p>영업 사이트, 담당자, 회원 권한에서 사용하는 사업본부 기준 데이터를 관리합니다.</p>
+                <p>영업 사이트와 회원/담당자 권한에서 사용하는 사업본부 기준 데이터를 관리합니다.</p>
             </div>
         </section>
 
@@ -75,8 +75,7 @@
                     <td th:text="${department.displayOrder}">1</td>
                     <td>
                         <span class="summary-chip" th:text="'영업 ' + ${department.opportunityCount}">영업 0</span>
-                        <span class="summary-chip" th:text="'직원 ' + ${department.employeeCount}">직원 0</span>
-                        <span class="summary-chip" th:text="'권한 ' + ${department.userPermissionCount}">권한 0</span>
+                        <span class="summary-chip" th:text="'회원 권한 ' + ${department.userPermissionCount}">회원 권한 0</span>
                     </td>
                     <td>
                         <span class="stage-chip" th:text="${department.active ? '활성' : '비활성'}">활성</span>

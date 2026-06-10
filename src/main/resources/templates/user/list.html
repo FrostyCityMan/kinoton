@@ -16,8 +16,8 @@
 
         <section class="page-title">
             <div>
-                <h1>회원 관리</h1>
-                <p>사용자 계정과 역할, 사업본부 접근 권한을 관리합니다.</p>
+                <h1>회원/권한 관리</h1>
+                <p>사용자 계정, 직원 기본 정보, 역할과 사업본부 접근 권한을 통합 관리합니다.</p>
             </div>
         </section>
 
@@ -28,7 +28,7 @@
             <form th:action="@{/users}" th:object="${createRequest}" method="post" class="management-form">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
-                <div class="form-grid">
+                <div class="form-grid user-basic-grid">
                     <label>
                         <span>이메일</span>
                         <input type="email" th:field="*{email}" required>
@@ -57,7 +57,7 @@
                     </label>
                 </div>
 
-                <div class="checkbox-grid">
+                <div class="checkbox-grid user-status-grid">
                     <label class="inline-check">
                         <input type="checkbox" th:field="*{active}">
                         <span>활성</span>

@@ -4,7 +4,6 @@ import com.kinoton.sales.attachment.service.AttachmentService;
 import com.kinoton.sales.common.exception.BusinessException;
 import com.kinoton.sales.common.response.ApiResponse;
 import com.kinoton.sales.customer.service.CustomerService;
-import com.kinoton.sales.employee.service.EmployeeService;
 import com.kinoton.sales.opportunity.dto.OpportunityCreateRequest;
 import com.kinoton.sales.opportunity.dto.OpportunityCreateResponse;
 import com.kinoton.sales.opportunity.dto.OpportunityDetailsResponse;
@@ -14,6 +13,7 @@ import com.kinoton.sales.opportunity.dto.OpportunityListItemDto;
 import com.kinoton.sales.opportunity.dto.OpportunityListSearchCondition;
 import com.kinoton.sales.opportunity.dto.OpportunityProgressCreateRequest;
 import com.kinoton.sales.opportunity.dto.OpportunityProgressCreateResponse;
+import com.kinoton.sales.opportunity.dto.OpportunityUpdateRequest;
 import com.kinoton.sales.opportunity.service.OpportunityService;
 import com.kinoton.sales.probability.service.ProbabilityStageService;
 import com.kinoton.sales.security.KinotonUserDetails;
@@ -41,7 +41,6 @@ public class OpportunityController {
     private final OpportunityService opportunityService;
     private final AttachmentService attachmentService;
     private final ProbabilityStageService probabilityStageService;
-    private final EmployeeService employeeService;
     private final UserManagementService userManagementService;
     private final CustomerService customerService;
     private final BusinessYearService businessYearService;
@@ -50,7 +49,6 @@ public class OpportunityController {
         OpportunityService opportunityService,
         AttachmentService attachmentService,
         ProbabilityStageService probabilityStageService,
-        EmployeeService employeeService,
         UserManagementService userManagementService,
         CustomerService customerService,
         BusinessYearService businessYearService
@@ -58,7 +56,6 @@ public class OpportunityController {
         this.opportunityService = opportunityService;
         this.attachmentService = attachmentService;
         this.probabilityStageService = probabilityStageService;
-        this.employeeService = employeeService;
         this.userManagementService = userManagementService;
         this.customerService = customerService;
         this.businessYearService = businessYearService;
@@ -87,7 +84,7 @@ public class OpportunityController {
 
     @GetMapping("/opportunities/new")
     public String selectOpportunityCreatePage(Model model, Authentication authentication) {
-        addOpportunityCreateModel(model, new OpportunityCreateRequest(), authentication);
+        addOpportunityFormModel(model, new OpportunityCreateRequest(), authentication);
         return "opportunity/create";
     }
 
@@ -100,7 +97,7 @@ public class OpportunityController {
         RedirectAttributes redirectAttributes
     ) {
         if (bindingResult.hasErrors()) {
-            addOpportunityCreateModel(model, request, authentication);
+            addOpportunityFormModel(model, request, authentication);
             return "opportunity/create";
         }
 
@@ -113,9 +110,60 @@ public class OpportunityController {
             redirectAttributes.addFlashAttribute("message", "영업 사이트가 등록되었습니다.");
             return "redirect:/opportunities/" + response.opportunityId();
         } catch (BusinessException exception) {
-            addOpportunityCreateModel(model, request, authentication);
+            addOpportunityFormModel(model, request, authentication);
             model.addAttribute("errorMessage", exception.getMessage());
             return "opportunity/create";
+        }
+    }
+
+    @GetMapping("/opportunities/{opportunityId}/edit")
+    public String selectOpportunityEditPage(
+        @PathVariable Long opportunityId,
+        Model model,
+        Authentication authentication
+    ) {
+        OpportunityDetailsResponse response = opportunityService.selectOpportunityDetails(opportunityId, authentication);
+        OpportunityUpdateRequest request = selectUpdateRequest(response);
+        model.addAttribute("details", response.details());
+        model.addAttribute("updateRequest", request);
+        model.addAttribute("allowedUserIds", response.allowedUserIds());
+        addOpportunityFormModel(model, request, authentication);
+        return "opportunity/edit";
+    }
+
+    @PostMapping("/opportunities/{opportunityId}")
+    public String updateOpportunityPage(
+        @PathVariable Long opportunityId,
+        @Valid @ModelAttribute("updateRequest") OpportunityUpdateRequest request,
+        BindingResult bindingResult,
+        Model model,
+        Authentication authentication,
+        RedirectAttributes redirectAttributes
+    ) {
+        if (bindingResult.hasErrors()) {
+            OpportunityDetailsResponse response = opportunityService.selectOpportunityDetails(opportunityId, authentication);
+            model.addAttribute("details", response.details());
+            model.addAttribute("allowedUserIds", request.getAllowedUserIds());
+            addOpportunityFormModel(model, request, authentication);
+            return "opportunity/edit";
+        }
+
+        try {
+            opportunityService.updateOpportunity(
+                opportunityId,
+                request,
+                selectAuthenticatedUserId(authentication),
+                authentication
+            );
+            redirectAttributes.addFlashAttribute("message", "영업 사이트 정보가 수정되었습니다.");
+            return "redirect:/opportunities/" + opportunityId;
+        } catch (BusinessException exception) {
+            OpportunityDetailsResponse response = opportunityService.selectOpportunityDetails(opportunityId, authentication);
+            model.addAttribute("details", response.details());
+            model.addAttribute("allowedUserIds", request.getAllowedUserIds());
+            addOpportunityFormModel(model, request, authentication);
+            model.addAttribute("errorMessage", exception.getMessage());
+            return "opportunity/edit";
         }
     }
 
@@ -225,13 +273,31 @@ public class OpportunityController {
         return null;
     }
 
-    private void addOpportunityCreateModel(Model model, OpportunityCreateRequest request, Authentication authentication) {
+    private OpportunityUpdateRequest selectUpdateRequest(OpportunityDetailsResponse response) {
+        OpportunityUpdateRequest request = new OpportunityUpdateRequest();
+        request.setSalesYear(response.details().getSalesYear());
+        request.setDepartmentCode(response.details().getDepartmentCode());
+        request.setCustomerId(response.details().getCustomerId());
+        request.setOwnerUserId(response.details().getOwnerUserId());
+        request.setProjectName(response.details().getProjectName());
+        request.setSecurityLevel(response.details().getSecurityLevel());
+        request.setAllowedUserIds(response.allowedUserIds());
+        request.setExpectedOrderYear(response.details().getExpectedOrderYear());
+        request.setExpectedOrderMonth(response.details().getExpectedOrderMonth());
+        request.setExpectedDeliveryYear(response.details().getExpectedDeliveryYear());
+        request.setExpectedDeliveryQuarter(response.details().getExpectedDeliveryQuarter());
+        request.setProjectAmount(response.details().getProjectAmount());
+        request.setProbability(response.details().getProbability());
+        return request;
+    }
+
+    private void addOpportunityFormModel(Model model, OpportunityCreateRequest request, Authentication authentication) {
         if (request.getSalesYear() == null) {
             request.setSalesYear(businessYearService.selectCurrentBusinessYear());
         }
         model.addAttribute("createRequest", request);
         model.addAttribute("departments", probabilityStageService.selectWritableDepartmentOptionList(authentication));
-        model.addAttribute("employees", employeeService.selectWritableEmployeeOptionList(authentication));
+        model.addAttribute("ownerUsers", userManagementService.selectWritableUserOptionList(authentication));
         model.addAttribute("customers", customerService.selectActiveCustomerOptionList());
         model.addAttribute("allowedUsers", userManagementService.selectActiveUserOptionList());
         model.addAttribute("probabilityStages", probabilityStageService.selectProbabilityStageSetting().stages());

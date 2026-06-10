@@ -30,6 +30,8 @@
         <id property="userId" column="user_id"/>
         <result property="email" column="email"/>
         <result property="name" column="name"/>
+        <result property="position" column="position"/>
+        <result property="departmentPermissionSummary" column="department_permission_summary"/>
     </resultMap>
 
     <resultMap id="RoleOptionMap" type="com.kinoton.sales.user.dto.RoleOptionDto">
@@ -84,10 +86,112 @@
         SELECT
             u.user_id,
             u.email,
-            u.name
+            u.name,
+            u.position,
+            COALESCE((
+                SELECT STRING_AGG(d.name, ', ' ORDER BY d.display_order, d.department_id)
+                FROM user_department_permissions udp
+                INNER JOIN departments d
+                    ON d.department_id = udp.department_id
+                WHERE udp.user_id = u.user_id
+                  AND udp.can_write = TRUE
+            ), '') AS department_permission_summary
         FROM users u
         WHERE u.is_active = TRUE
         ORDER BY u.name, u.user_id
+    </select>
+
+    <select id="selectWritableUserOptionList"
+            parameterType="com.kinoton.sales.security.dto.DepartmentAccessScope"
+            resultMap="UserOptionMap">
+        -- 영업 사이트 담당자로 선택 가능한 활성 사용자를 쓰기 권한 범위 안에서 조회한다.
+        SELECT
+            u.user_id,
+            u.email,
+            u.name,
+            u.position,
+            COALESCE((
+                SELECT STRING_AGG(d2.name, ', ' ORDER BY d2.display_order, d2.department_id)
+                FROM user_department_permissions udp2
+                INNER JOIN departments d2
+                    ON d2.department_id = udp2.department_id
+                WHERE udp2.user_id = u.user_id
+                  AND udp2.can_write = TRUE
+            ), '') AS department_permission_summary
+        FROM users u
+        WHERE u.is_active = TRUE
+          AND (
+            #{allDepartments} = TRUE
+            OR EXISTS (
+                SELECT 1
+                FROM user_department_permissions udp
+                INNER JOIN departments d
+                    ON d.department_id = udp.department_id
+                WHERE udp.user_id = u.user_id
+                  AND udp.can_write = TRUE
+                  <choose>
+                      <when test="departmentCodes != null and departmentCodes.size() > 0">
+                          AND d.code IN
+                          <foreach collection="departmentCodes" item="departmentCode" open="(" separator="," close=")">
+                              #{departmentCode}
+                          </foreach>
+                      </when>
+                      <otherwise>
+                          AND 1 = 0
+                      </otherwise>
+                  </choose>
+            )
+          )
+        ORDER BY u.name, u.user_id
+    </select>
+
+    <select id="selectActiveUserOptionDetails" parameterType="long" resultMap="UserOptionMap">
+        -- 영업 사이트 담당자로 선택한 활성 사용자 상세를 조회한다.
+        SELECT
+            u.user_id,
+            u.email,
+            u.name,
+            u.position,
+            COALESCE((
+                SELECT STRING_AGG(d.name, ', ' ORDER BY d.display_order, d.department_id)
+                FROM user_department_permissions udp
+                INNER JOIN departments d
+                    ON d.department_id = udp.department_id
+                WHERE udp.user_id = u.user_id
+                  AND udp.can_write = TRUE
+            ), '') AS department_permission_summary
+        FROM users u
+        WHERE u.user_id = #{userId}
+          AND u.is_active = TRUE
+    </select>
+
+    <select id="selectActiveUserWritableDepartmentCount" resultType="int">
+        -- 활성 사용자가 지정 사업본부에 쓰기 권한 또는 전체 관리 역할을 갖는지 확인한다.
+        SELECT
+            COUNT(1)
+        FROM users u
+        WHERE u.user_id = #{userId}
+          AND u.is_active = TRUE
+          AND (
+              EXISTS (
+                  SELECT 1
+                  FROM user_department_permissions udp
+                  INNER JOIN departments d
+                      ON d.department_id = udp.department_id
+                  WHERE udp.user_id = u.user_id
+                    AND udp.can_write = TRUE
+                    AND d.code = #{departmentCode}
+                    AND d.is_active = TRUE
+              )
+              OR EXISTS (
+                  SELECT 1
+                  FROM user_roles ur
+                  INNER JOIN roles r
+                      ON r.role_id = ur.role_id
+                  WHERE ur.user_id = u.user_id
+                    AND r.code IN ('ADMIN', 'EXECUTIVE')
+              )
+          )
     </select>
 
     <select id="selectActiveUserIdList" resultType="long">

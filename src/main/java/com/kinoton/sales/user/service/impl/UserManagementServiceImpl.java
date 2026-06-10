@@ -2,6 +2,7 @@ package com.kinoton.sales.user.service.impl;
 
 import com.kinoton.sales.audit.service.AuditLogService;
 import com.kinoton.sales.common.exception.BusinessException;
+import com.kinoton.sales.security.DepartmentAccessService;
 import com.kinoton.sales.user.dao.UserManagementDao;
 import com.kinoton.sales.user.dto.DepartmentPermissionDto;
 import com.kinoton.sales.user.dto.ManagedUserDetailsDto;
@@ -17,6 +18,7 @@ import com.kinoton.sales.user.dto.UserRoleCommandDto;
 import com.kinoton.sales.user.dto.UserUpdateCommandDto;
 import com.kinoton.sales.user.dto.UserUpdateRequest;
 import com.kinoton.sales.user.service.UserManagementService;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,15 +41,18 @@ public class UserManagementServiceImpl implements UserManagementService {
     private final UserManagementDao userManagementDao;
     private final PasswordEncoder passwordEncoder;
     private final AuditLogService auditLogService;
+    private final DepartmentAccessService departmentAccessService;
 
     public UserManagementServiceImpl(
         UserManagementDao userManagementDao,
         PasswordEncoder passwordEncoder,
-        AuditLogService auditLogService
+        AuditLogService auditLogService,
+        DepartmentAccessService departmentAccessService
     ) {
         this.userManagementDao = userManagementDao;
         this.passwordEncoder = passwordEncoder;
         this.auditLogService = auditLogService;
+        this.departmentAccessService = departmentAccessService;
     }
 
     @Override
@@ -64,6 +69,27 @@ public class UserManagementServiceImpl implements UserManagementService {
     @Transactional(readOnly = true)
     public List<UserOptionDto> selectActiveUserOptionList() {
         return userManagementDao.selectActiveUserOptionList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserOptionDto> selectWritableUserOptionList(Authentication authentication) {
+        return userManagementDao.selectWritableUserOptionList(departmentAccessService.selectWritableScope(authentication));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserOptionDto selectActiveUserOptionDetails(Long userId) {
+        return userManagementDao.selectActiveUserOptionDetails(userId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean canActiveUserWriteDepartment(Long userId, String departmentCode) {
+        if (userId == null || !StringUtils.hasText(departmentCode)) {
+            return false;
+        }
+        return userManagementDao.selectActiveUserWritableDepartmentCount(userId, departmentCode) > 0;
     }
 
     @Override

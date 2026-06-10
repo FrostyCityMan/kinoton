@@ -10,7 +10,9 @@ import com.kinoton.sales.user.dto.UserDepartmentPermissionCommandDto;
 import com.kinoton.sales.user.dto.UserOptionDto;
 import com.kinoton.sales.user.dto.UserRoleCommandDto;
 import com.kinoton.sales.user.dto.UserUpdateCommandDto;
+import com.kinoton.sales.security.dto.DepartmentAccessScope;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -20,6 +22,15 @@ public interface UserManagementDao {
     List<ManagedUserListItemDto> selectManagedUserList();
 
     List<UserOptionDto> selectActiveUserOptionList();
+
+    List<UserOptionDto> selectWritableUserOptionList(DepartmentAccessScope accessScope);
+
+    UserOptionDto selectActiveUserOptionDetails(Long userId);
+
+    int selectActiveUserWritableDepartmentCount(
+        @Param("userId") Long userId,
+        @Param("departmentCode") String departmentCode
+    );
 
     List<Long> selectActiveUserIdList(List<Long> userIds);
 

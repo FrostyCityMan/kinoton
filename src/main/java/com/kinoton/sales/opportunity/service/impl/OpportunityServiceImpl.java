@@ -4,8 +4,6 @@ import com.kinoton.sales.audit.service.AuditLogService;
 import com.kinoton.sales.common.exception.BusinessException;
 import com.kinoton.sales.customer.dto.CustomerOptionDto;
 import com.kinoton.sales.customer.service.CustomerService;
-import com.kinoton.sales.employee.dto.EmployeeOptionDto;
-import com.kinoton.sales.employee.service.EmployeeService;
 import com.kinoton.sales.opportunity.dao.OpportunityDao;
 import com.kinoton.sales.opportunity.dto.OpportunityAccessCondition;
 import com.kinoton.sales.opportunity.dto.OpportunityCreateCommandDto;
@@ -22,12 +20,14 @@ import com.kinoton.sales.opportunity.dto.OpportunityProgressCreateCommandDto;
 import com.kinoton.sales.opportunity.dto.OpportunityProgressCreateRequest;
 import com.kinoton.sales.opportunity.dto.OpportunityProgressCreateResponse;
 import com.kinoton.sales.opportunity.dto.OpportunityStageUpdateCommandDto;
+import com.kinoton.sales.opportunity.dto.OpportunityUpdateRequest;
 import com.kinoton.sales.opportunity.dto.OpportunityViewPermissionCommandDto;
 import com.kinoton.sales.opportunity.dto.ProbabilityStageSimpleDto;
 import com.kinoton.sales.opportunity.service.OpportunityService;
 import com.kinoton.sales.security.KinotonUserDetails;
 import com.kinoton.sales.security.DepartmentAccessService;
 import com.kinoton.sales.security.dto.DepartmentAccessScope;
+import com.kinoton.sales.user.dto.UserOptionDto;
 import com.kinoton.sales.user.service.UserManagementService;
 import com.kinoton.sales.year.service.BusinessYearService;
 import org.springframework.security.access.AccessDeniedException;
@@ -57,7 +57,6 @@ public class OpportunityServiceImpl implements OpportunityService {
     private final OpportunityDao opportunityDao;
     private final DepartmentAccessService departmentAccessService;
     private final AuditLogService auditLogService;
-    private final EmployeeService employeeService;
     private final UserManagementService userManagementService;
     private final CustomerService customerService;
     private final BusinessYearService businessYearService;
@@ -66,7 +65,6 @@ public class OpportunityServiceImpl implements OpportunityService {
         OpportunityDao opportunityDao,
         DepartmentAccessService departmentAccessService,
         AuditLogService auditLogService,
-        EmployeeService employeeService,
         UserManagementService userManagementService,
         CustomerService customerService,
         BusinessYearService businessYearService
@@ -74,7 +72,6 @@ public class OpportunityServiceImpl implements OpportunityService {
         this.opportunityDao = opportunityDao;
         this.departmentAccessService = departmentAccessService;
         this.auditLogService = auditLogService;
-        this.employeeService = employeeService;
         this.userManagementService = userManagementService;
         this.customerService = customerService;
         this.businessYearService = businessYearService;
@@ -99,7 +96,7 @@ public class OpportunityServiceImpl implements OpportunityService {
             throw new BusinessException("존재하지 않는 수주확률 단계입니다.");
         }
 
-        EmployeeOptionDto ownerEmployee = selectOwnerEmployee(request, authentication);
+        UserOptionDto ownerUser = selectOwnerUser(request);
         CustomerOptionDto customer = selectCustomer(request);
         String securityLevel = selectSecurityLevel(request.getSecurityLevel());
         int salesYear = businessYearService.selectBusinessYear(request.getSalesYear());
@@ -110,8 +107,9 @@ public class OpportunityServiceImpl implements OpportunityService {
         command.setCustomerId(customer == null ? null : customer.getCustomerId());
         command.setCustomerName(selectCustomerName(request, customer));
         command.setProjectName(request.getProjectName());
-        command.setOwnerName(selectOwnerName(request, ownerEmployee));
-        command.setOwnerEmployeeId(ownerEmployee == null ? null : ownerEmployee.getEmployeeId());
+        command.setOwnerName(selectOwnerName(ownerUser));
+        command.setOwnerEmployeeId(null);
+        command.setOwnerUserId(ownerUser.getUserId());
         command.setSecurityLevel(securityLevel);
         command.setExpectedOrderYear(request.getExpectedOrderYear());
         command.setExpectedOrderMonth(request.getExpectedOrderMonth());
@@ -134,6 +132,7 @@ public class OpportunityServiceImpl implements OpportunityService {
         command.setProbabilityStageId(probabilityStage.getProbabilityStageId());
         command.setStatus(DEFAULT_STATUS);
         command.setCreatedBy(createdBy);
+        command.setUpdatedBy(createdBy);
         opportunityDao.insertOpportunity(command);
         insertOpportunityViewPermissionList(command, request.getAllowedUserIds(), createdBy);
 
@@ -155,6 +154,84 @@ public class OpportunityServiceImpl implements OpportunityService {
         );
 
         return new OpportunityCreateResponse(command.getOpportunityId());
+    }
+
+    @Override
+    @Transactional
+    public void updateOpportunity(
+        Long opportunityId,
+        OpportunityUpdateRequest request,
+        Long updatedBy,
+        Authentication authentication
+    ) {
+        OpportunityDetailsDto before = selectExistingOpportunityDetailsByAccess(opportunityId, authentication);
+        departmentAccessService.validateWritableDepartment(before.getDepartmentCode(), authentication);
+        departmentAccessService.validateWritableDepartment(request.getDepartmentCode(), authentication);
+
+        Long departmentId = opportunityDao.selectDepartmentIdByCode(request.getDepartmentCode());
+        if (departmentId == null) {
+            throw new BusinessException("존재하지 않는 사업본부입니다.");
+        }
+
+        ProbabilityStageSimpleDto probabilityStage = opportunityDao.selectProbabilityStageByProbability(request.getProbability());
+        if (probabilityStage == null) {
+            throw new BusinessException("존재하지 않는 수주확률 단계입니다.");
+        }
+
+        UserOptionDto ownerUser = selectOwnerUser(request);
+        CustomerOptionDto customer = selectCustomer(request);
+        String securityLevel = selectSecurityLevel(request.getSecurityLevel());
+        int salesYear = businessYearService.selectBusinessYear(request.getSalesYear());
+
+        OpportunityCreateCommandDto command = new OpportunityCreateCommandDto();
+        command.setOpportunityId(opportunityId);
+        command.setDepartmentId(departmentId);
+        command.setSalesYear(salesYear);
+        command.setCustomerId(customer == null ? null : customer.getCustomerId());
+        command.setCustomerName(selectCustomerName(request, customer));
+        command.setProjectName(request.getProjectName());
+        command.setOwnerName(selectOwnerName(ownerUser));
+        command.setOwnerEmployeeId(null);
+        command.setOwnerUserId(ownerUser.getUserId());
+        command.setSecurityLevel(securityLevel);
+        command.setExpectedOrderYear(request.getExpectedOrderYear());
+        command.setExpectedOrderMonth(request.getExpectedOrderMonth());
+        command.setExpectedOrderQuarter(null);
+        command.setExpectedOrderPeriod(selectMonthPeriodLabel(
+            request.getExpectedOrderYear(),
+            request.getExpectedOrderMonth(),
+            request.getExpectedOrderPeriod(),
+            "예상발주시기"
+        ));
+        command.setExpectedDeliveryYear(request.getExpectedDeliveryYear());
+        command.setExpectedDeliveryQuarter(request.getExpectedDeliveryQuarter());
+        command.setExpectedDeliveryPeriod(selectPeriodLabel(
+            request.getExpectedDeliveryYear(),
+            request.getExpectedDeliveryQuarter(),
+            request.getExpectedDeliveryPeriod(),
+            "예상구축시기"
+        ));
+        command.setProjectAmount(request.getProjectAmount());
+        command.setProbabilityStageId(probabilityStage.getProbabilityStageId());
+        command.setStatus(before.getStatus());
+        command.setUpdatedBy(updatedBy);
+
+        Map<String, Object> beforeData = selectOpportunityDetailsAuditData(
+            before,
+            opportunityDao.selectOpportunityViewPermissionUserIdList(opportunityId)
+        );
+        opportunityDao.updateOpportunity(command);
+        opportunityDao.deleteOpportunityViewPermissionList(opportunityId);
+        insertOpportunityViewPermissionList(command, request.getAllowedUserIds(), updatedBy);
+
+        auditLogService.insertAuditLog(
+            updatedBy,
+            "OPPORTUNITY",
+            opportunityId,
+            "UPDATE_OPPORTUNITY",
+            beforeData,
+            selectOpportunityAuditData(request, command, probabilityStage, null)
+        );
     }
 
     private CustomerOptionDto selectCustomer(OpportunityCreateRequest request) {
@@ -205,28 +282,23 @@ public class OpportunityServiceImpl implements OpportunityService {
         return year + "년 " + month + "월";
     }
 
-    private EmployeeOptionDto selectOwnerEmployee(OpportunityCreateRequest request, Authentication authentication) {
-        if (request.getOwnerEmployeeId() == null) {
-            return null;
+    private UserOptionDto selectOwnerUser(OpportunityCreateRequest request) {
+        if (request.getOwnerUserId() == null) {
+            throw new BusinessException("담당자를 선택해야 합니다.");
         }
 
-        EmployeeOptionDto employee = employeeService.selectActiveEmployeeOptionDetails(request.getOwnerEmployeeId());
-        if (employee == null) {
+        UserOptionDto ownerUser = userManagementService.selectActiveUserOptionDetails(request.getOwnerUserId());
+        if (ownerUser == null) {
             throw new BusinessException("선택한 담당자 정보를 찾을 수 없습니다.");
         }
-        departmentAccessService.validateWritableDepartment(employee.getDepartmentCode(), authentication);
-        return employee;
+        if (!userManagementService.canActiveUserWriteDepartment(ownerUser.getUserId(), request.getDepartmentCode())) {
+            throw new BusinessException("선택한 담당자는 해당 사업본부의 쓰기 권한이 없습니다.");
+        }
+        return ownerUser;
     }
 
-    private String selectOwnerName(OpportunityCreateRequest request, EmployeeOptionDto ownerEmployee) {
-        if (ownerEmployee != null) {
-            return ownerEmployee.getName();
-        }
-
-        if (!StringUtils.hasText(request.getOwnerName())) {
-            throw new BusinessException("담당자를 선택하거나 입력해야 합니다.");
-        }
-        return request.getOwnerName();
+    private String selectOwnerName(UserOptionDto ownerUser) {
+        return ownerUser.getName();
     }
 
     private String normalizeNullableText(String value) {
@@ -272,6 +344,7 @@ public class OpportunityServiceImpl implements OpportunityService {
             opportunityDao.selectOpportunityProgressList(opportunityId),
             opportunityDao.selectProbabilityStageList(),
             opportunityDao.selectOpportunityExecutiveCommentList(opportunityId),
+            opportunityDao.selectOpportunityViewPermissionUserIdList(opportunityId),
             canWriteExecutiveComment(authentication)
         );
     }
@@ -451,6 +524,7 @@ public class OpportunityServiceImpl implements OpportunityService {
         data.put("customerName", command.getCustomerName());
         data.put("projectName", request.getProjectName());
         data.put("ownerEmployeeId", command.getOwnerEmployeeId());
+        data.put("ownerUserId", command.getOwnerUserId());
         data.put("ownerName", command.getOwnerName());
         data.put("securityLevel", command.getSecurityLevel());
         data.put("expectedOrderPeriod", command.getExpectedOrderPeriod());
@@ -465,6 +539,35 @@ public class OpportunityServiceImpl implements OpportunityService {
         data.put("probabilityStageName", probabilityStage.getName());
         data.put("status", command.getStatus());
         data.put("initialProgressId", initialProgressId);
+        data.put("allowedUserIds", request.getAllowedUserIds());
+        return data;
+    }
+
+    private Map<String, Object> selectOpportunityDetailsAuditData(
+        OpportunityDetailsDto details,
+        List<Long> allowedUserIds
+    ) {
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("opportunityId", details.getOpportunityId());
+        data.put("salesYear", details.getSalesYear());
+        data.put("departmentCode", details.getDepartmentCode());
+        data.put("customerId", details.getCustomerId());
+        data.put("customerName", details.getCustomerName());
+        data.put("projectName", details.getProjectName());
+        data.put("ownerUserId", details.getOwnerUserId());
+        data.put("ownerName", details.getOwnerName());
+        data.put("securityLevel", details.getSecurityLevel());
+        data.put("expectedOrderPeriod", details.getExpectedOrderPeriod());
+        data.put("expectedOrderYear", details.getExpectedOrderYear());
+        data.put("expectedOrderMonth", details.getExpectedOrderMonth());
+        data.put("expectedDeliveryPeriod", details.getExpectedDeliveryPeriod());
+        data.put("expectedDeliveryYear", details.getExpectedDeliveryYear());
+        data.put("expectedDeliveryQuarter", details.getExpectedDeliveryQuarter());
+        data.put("projectAmount", details.getProjectAmount());
+        data.put("probability", details.getProbability());
+        data.put("probabilityStageName", details.getProbabilityStageName());
+        data.put("status", details.getStatus());
+        data.put("allowedUserIds", allowedUserIds);
         return data;
     }
 
