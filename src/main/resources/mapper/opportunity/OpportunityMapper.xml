@@ -283,6 +283,12 @@
         WHERE opportunity_id = #{opportunityId}
     </update>
 
+    <delete id="deleteOpportunity" parameterType="long">
+        -- 영업 사이트와 하위 진행 기록, 첨부파일 메타데이터, 열람 권한, 임원 코멘트를 삭제한다.
+        DELETE FROM opportunities
+        WHERE opportunity_id = #{opportunityId}
+    </delete>
+
     <select id="selectOpportunityList"
             parameterType="com.kinoton.sales.opportunity.dto.OpportunityListSearchCondition"
             resultMap="OpportunityListItemMap">

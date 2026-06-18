@@ -189,6 +189,21 @@ public class AttachmentServiceImpl implements AttachmentService {
         deleteStoredFileQuietly(selectStoragePath(attachment.getStoragePath()));
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<String> selectAttachmentStoragePathListByOpportunityId(Long opportunityId) {
+        return attachmentDao.selectAttachmentDetailsListByOpportunityId(opportunityId).stream()
+            .map(AttachmentDetailsDto::getStoragePath)
+            .toList();
+    }
+
+    @Override
+    public void deleteStoredFileList(List<String> storagePaths) {
+        for (String storagePath : storagePaths) {
+            deleteStoredFileQuietly(selectStoragePath(storagePath));
+        }
+    }
+
     private OpportunityDetailsDto selectExistingOpportunityByAccess(Long opportunityId, Authentication authentication) {
         DepartmentAccessScope readableScope = departmentAccessService.selectReadableScope(authentication);
         OpportunityDetailsDto opportunity = opportunityDao.selectOpportunityDetailsByAccess(

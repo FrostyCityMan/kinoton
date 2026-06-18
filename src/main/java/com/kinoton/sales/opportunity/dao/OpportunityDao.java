@@ -40,6 +40,8 @@ public interface OpportunityDao {
 
     void updateOpportunity(OpportunityCreateCommandDto command);
 
+    void deleteOpportunity(Long opportunityId);
+
     List<OpportunityListItemDto> selectOpportunityList(OpportunityListSearchCondition condition);
 
     OpportunityDetailsDto selectOpportunityDetailsByAccess(OpportunityAccessCondition condition);

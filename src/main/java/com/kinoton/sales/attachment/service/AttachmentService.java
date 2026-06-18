@@ -27,4 +27,8 @@ public interface AttachmentService {
     );
 
     void deleteAttachment(Long opportunityId, Long attachmentId, Long deletedBy, Authentication authentication);
+
+    List<String> selectAttachmentStoragePathListByOpportunityId(Long opportunityId);
+
+    void deleteStoredFileList(List<String> storagePaths);
 }

@@ -1,6 +1,7 @@
 package com.kinoton.sales.opportunity.service.impl;
 
 import com.kinoton.sales.audit.service.AuditLogService;
+import com.kinoton.sales.attachment.service.AttachmentService;
 import com.kinoton.sales.common.exception.BusinessException;
 import com.kinoton.sales.customer.dto.CustomerOptionDto;
 import com.kinoton.sales.customer.service.CustomerService;
@@ -57,6 +58,7 @@ public class OpportunityServiceImpl implements OpportunityService {
     private final OpportunityDao opportunityDao;
     private final DepartmentAccessService departmentAccessService;
     private final AuditLogService auditLogService;
+    private final AttachmentService attachmentService;
     private final UserManagementService userManagementService;
     private final CustomerService customerService;
     private final BusinessYearService businessYearService;
@@ -65,6 +67,7 @@ public class OpportunityServiceImpl implements OpportunityService {
         OpportunityDao opportunityDao,
         DepartmentAccessService departmentAccessService,
         AuditLogService auditLogService,
+        AttachmentService attachmentService,
         UserManagementService userManagementService,
         CustomerService customerService,
         BusinessYearService businessYearService
@@ -72,6 +75,7 @@ public class OpportunityServiceImpl implements OpportunityService {
         this.opportunityDao = opportunityDao;
         this.departmentAccessService = departmentAccessService;
         this.auditLogService = auditLogService;
+        this.attachmentService = attachmentService;
         this.userManagementService = userManagementService;
         this.customerService = customerService;
         this.businessYearService = businessYearService;
@@ -232,6 +236,30 @@ public class OpportunityServiceImpl implements OpportunityService {
             beforeData,
             selectOpportunityAuditData(request, command, probabilityStage, null)
         );
+    }
+
+    @Override
+    @Transactional
+    public void deleteOpportunity(Long opportunityId, Long deletedBy, Authentication authentication) {
+        OpportunityDetailsDto before = selectExistingOpportunityDetailsByAccess(opportunityId, authentication);
+        departmentAccessService.validateWritableDepartment(before.getDepartmentCode(), authentication);
+
+        Map<String, Object> beforeData = selectOpportunityDetailsAuditData(
+            before,
+            opportunityDao.selectOpportunityViewPermissionUserIdList(opportunityId)
+        );
+        List<String> attachmentStoragePaths = attachmentService.selectAttachmentStoragePathListByOpportunityId(opportunityId);
+
+        auditLogService.insertAuditLog(
+            deletedBy,
+            "OPPORTUNITY",
+            opportunityId,
+            "DELETE_OPPORTUNITY",
+            beforeData,
+            null
+        );
+        opportunityDao.deleteOpportunity(opportunityId);
+        attachmentService.deleteStoredFileList(attachmentStoragePaths);
     }
 
     private CustomerOptionDto selectCustomer(OpportunityCreateRequest request) {

@@ -13,6 +13,8 @@ public interface AttachmentDao {
 
     List<AttachmentItemDto> selectAttachmentListByOpportunityId(Long opportunityId);
 
+    List<AttachmentDetailsDto> selectAttachmentDetailsListByOpportunityId(Long opportunityId);
+
     AttachmentDetailsDto selectAttachmentDetails(AttachmentLookupCondition condition);
 
     void insertAttachment(AttachmentCreateCommandDto command);

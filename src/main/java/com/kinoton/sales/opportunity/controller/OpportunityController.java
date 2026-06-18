@@ -167,6 +167,21 @@ public class OpportunityController {
         }
     }
 
+    @PostMapping("/opportunities/{opportunityId}/delete")
+    public String deleteOpportunityPage(
+        @PathVariable Long opportunityId,
+        Authentication authentication,
+        RedirectAttributes redirectAttributes
+    ) {
+        try {
+            opportunityService.deleteOpportunity(opportunityId, selectAuthenticatedUserId(authentication), authentication);
+            redirectAttributes.addFlashAttribute("message", "영업 사이트가 삭제되었습니다.");
+        } catch (BusinessException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        }
+        return "redirect:/opportunities";
+    }
+
     @GetMapping("/opportunities/{opportunityId}")
     public String selectOpportunityDetailsPage(
         @PathVariable Long opportunityId,

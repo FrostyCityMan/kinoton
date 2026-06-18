@@ -73,6 +73,22 @@
           AND a.attachment_id = #{attachmentId}
     </select>
 
+    <select id="selectAttachmentDetailsListByOpportunityId" parameterType="long" resultMap="AttachmentDetailsMap">
+        -- 영업 사이트 삭제 시 정리할 첨부파일 상세 목록을 조회한다.
+        SELECT
+            a.attachment_id,
+            a.opportunity_id,
+            a.opportunity_progress_id,
+            a.original_filename,
+            a.stored_filename,
+            a.content_type,
+            a.file_size_bytes,
+            a.storage_path
+        FROM attachments a
+        WHERE a.opportunity_id = #{opportunityId}
+        ORDER BY a.attachment_id
+    </select>
+
     <insert id="insertAttachment"
             parameterType="com.kinoton.sales.attachment.dto.AttachmentCreateCommandDto"
             useGeneratedKeys="true"

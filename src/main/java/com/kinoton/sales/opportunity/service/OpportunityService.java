@@ -20,6 +20,8 @@ public interface OpportunityService {
 
     void updateOpportunity(Long opportunityId, OpportunityUpdateRequest request, Long updatedBy, Authentication authentication);
 
+    void deleteOpportunity(Long opportunityId, Long deletedBy, Authentication authentication);
+
     List<OpportunityListItemDto> selectOpportunityList(OpportunityListSearchCondition condition, Authentication authentication);
 
     OpportunityDetailsResponse selectOpportunityDetails(Long opportunityId, Authentication authentication);
