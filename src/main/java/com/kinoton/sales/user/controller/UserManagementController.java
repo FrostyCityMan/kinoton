@@ -1,5 +1,6 @@
 package com.kinoton.sales.user.controller;
 
+import com.kinoton.sales.common.exception.BusinessException;
 import com.kinoton.sales.common.response.ApiResponse;
 import com.kinoton.sales.security.KinotonUserDetails;
 import com.kinoton.sales.user.dto.UserCreateRequest;
@@ -110,6 +111,21 @@ public class UserManagementController {
     ) {
         userManagementService.updateUser(userId, request, selectAuthenticatedUserId(authentication));
         return ApiResponse.success(null, "사용자 권한이 저장되었습니다.");
+    }
+
+    @PostMapping("/users/{userId}/delete")
+    public String deleteUserPage(
+        @PathVariable Long userId,
+        Authentication authentication,
+        RedirectAttributes redirectAttributes
+    ) {
+        try {
+            userManagementService.deleteUser(userId, selectAuthenticatedUserId(authentication), authentication);
+            redirectAttributes.addFlashAttribute("message", "사용자가 삭제되었습니다.");
+        } catch (BusinessException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        }
+        return "redirect:/users";
     }
 
     private UserUpdateRequest selectUpdateRequest(UserEditResponse response) {

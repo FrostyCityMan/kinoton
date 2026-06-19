@@ -50,6 +50,24 @@ public interface UserManagementDao {
 
     void updateManagedUser(UserUpdateCommandDto command);
 
+    void updateOpportunityUserReferencesToNull(Long userId);
+
+    void updateOpportunityProgressUserReferencesToNull(Long userId);
+
+    void updateAttachmentUserReferencesToNull(Long userId);
+
+    void updateAuditLogActorUserToNull(Long userId);
+
+    void updateOpportunityViewPermissionCreatedByToNull(Long userId);
+
+    void deleteOpportunityViewPermissionListByUserId(Long userId);
+
+    void updateOpportunityExecutiveCommentUserReferencesToNull(Long userId);
+
+    void updateCustomerUserReferencesToNull(Long userId);
+
+    void updateAnnualRevenueTargetUserReferencesToNull(Long userId);
+
     void deleteUserRoleList(Long userId);
 
     void insertUserRole(UserRoleCommandDto command);
@@ -57,4 +75,6 @@ public interface UserManagementDao {
     void deleteUserDepartmentPermissionList(Long userId);
 
     void insertUserDepartmentPermission(UserDepartmentPermissionCommandDto command);
+
+    void deleteManagedUser(Long userId);
 }

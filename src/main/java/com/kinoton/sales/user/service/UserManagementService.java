@@ -28,4 +28,6 @@ public interface UserManagementService {
     Long insertUser(UserCreateRequest request, Long authenticatedUserId);
 
     void updateUser(Long userId, UserUpdateRequest request, Long authenticatedUserId);
+
+    void deleteUser(Long userId, Long authenticatedUserId, Authentication authentication);
 }

@@ -3,6 +3,7 @@ package com.kinoton.sales.user.service.impl;
 import com.kinoton.sales.audit.service.AuditLogService;
 import com.kinoton.sales.common.exception.BusinessException;
 import com.kinoton.sales.security.DepartmentAccessService;
+import com.kinoton.sales.security.KinotonUserDetails;
 import com.kinoton.sales.user.dao.UserManagementDao;
 import com.kinoton.sales.user.dto.DepartmentPermissionDto;
 import com.kinoton.sales.user.dto.ManagedUserDetailsDto;
@@ -18,6 +19,8 @@ import com.kinoton.sales.user.dto.UserRoleCommandDto;
 import com.kinoton.sales.user.dto.UserUpdateCommandDto;
 import com.kinoton.sales.user.dto.UserUpdateRequest;
 import com.kinoton.sales.user.service.UserManagementService;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -198,6 +201,33 @@ public class UserManagementServiceImpl implements UserManagementService {
         );
     }
 
+    @Override
+    @Transactional
+    public void deleteUser(Long userId, Long authenticatedUserId, Authentication authentication) {
+        validateAdmin(authentication);
+        selectExistingUserDetails(userId);
+        if (userId.equals(authenticatedUserId)) {
+            throw new BusinessException("본인 계정은 직접 삭제할 수 없습니다.");
+        }
+
+        Map<String, Object> beforeData = selectUserAuditData(userId);
+        auditLogService.insertAuditLog(
+            authenticatedUserId,
+            "USER",
+            userId,
+            "DELETE_USER",
+            beforeData,
+            null
+        );
+
+        deleteUserReferences(userId);
+        try {
+            userManagementDao.deleteManagedUser(userId);
+        } catch (DataIntegrityViolationException exception) {
+            throw new BusinessException("업무 데이터 참조로 사용자를 삭제할 수 없습니다. 관리자에게 문의하세요.");
+        }
+    }
+
     private ManagedUserDetailsDto selectExistingUserDetails(Long userId) {
         ManagedUserDetailsDto user = userManagementDao.selectManagedUserDetails(userId);
         if (user == null) {
@@ -289,6 +319,29 @@ public class UserManagementServiceImpl implements UserManagementService {
                 accessAssignment.writableDepartmentCodes().contains(departmentCode)
             ));
         }
+    }
+
+    private void validateAdmin(Authentication authentication) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof KinotonUserDetails userDetails)) {
+            throw new AccessDeniedException("관리자 권한이 필요합니다.");
+        }
+        if (!userDetails.hasRole(ADMIN_ROLE)) {
+            throw new AccessDeniedException("관리자 권한이 필요합니다.");
+        }
+    }
+
+    private void deleteUserReferences(Long userId) {
+        userManagementDao.updateOpportunityUserReferencesToNull(userId);
+        userManagementDao.updateOpportunityProgressUserReferencesToNull(userId);
+        userManagementDao.updateAttachmentUserReferencesToNull(userId);
+        userManagementDao.updateAuditLogActorUserToNull(userId);
+        userManagementDao.updateOpportunityViewPermissionCreatedByToNull(userId);
+        userManagementDao.deleteOpportunityViewPermissionListByUserId(userId);
+        userManagementDao.updateOpportunityExecutiveCommentUserReferencesToNull(userId);
+        userManagementDao.updateCustomerUserReferencesToNull(userId);
+        userManagementDao.updateAnnualRevenueTargetUserReferencesToNull(userId);
+        userManagementDao.deleteUserRoleList(userId);
+        userManagementDao.deleteUserDepartmentPermissionList(userId);
     }
 
     private Map<String, Object> selectUserAuditData(Long userId) {

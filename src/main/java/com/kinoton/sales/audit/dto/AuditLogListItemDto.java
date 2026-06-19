@@ -160,6 +160,9 @@ public class AuditLogListItemDto {
         if ("DELETE_CUSTOMER".equals(action)) {
             return "고객사 삭제";
         }
+        if ("DELETE_USER".equals(action)) {
+            return "사용자 삭제";
+        }
         if ("INSERT_DEPARTMENT".equals(action)) {
             return "사업본부 등록";
         }

@@ -311,6 +311,79 @@
         WHERE user_id = #{userId}
     </update>
 
+    <update id="updateOpportunityUserReferencesToNull" parameterType="long">
+        -- 삭제 대상 사용자가 영업 사이트 작성자, 수정자, 담당자로 참조된 값을 비운다.
+        UPDATE opportunities
+        SET
+            created_by = CASE WHEN created_by = #{userId} THEN NULL ELSE created_by END,
+            updated_by = CASE WHEN updated_by = #{userId} THEN NULL ELSE updated_by END,
+            owner_user_id = CASE WHEN owner_user_id = #{userId} THEN NULL ELSE owner_user_id END
+        WHERE created_by = #{userId}
+           OR updated_by = #{userId}
+           OR owner_user_id = #{userId}
+    </update>
+
+    <update id="updateOpportunityProgressUserReferencesToNull" parameterType="long">
+        -- 삭제 대상 사용자가 영업 진행 기록 작성자로 참조된 값을 비운다.
+        UPDATE opportunity_progress
+        SET created_by = NULL
+        WHERE created_by = #{userId}
+    </update>
+
+    <update id="updateAttachmentUserReferencesToNull" parameterType="long">
+        -- 삭제 대상 사용자가 첨부파일 업로드자로 참조된 값을 비운다.
+        UPDATE attachments
+        SET uploaded_by = NULL
+        WHERE uploaded_by = #{userId}
+    </update>
+
+    <update id="updateAuditLogActorUserToNull" parameterType="long">
+        -- 삭제 대상 사용자가 감사 로그 수행자로 참조된 값을 비운다.
+        UPDATE audit_logs
+        SET actor_user_id = NULL
+        WHERE actor_user_id = #{userId}
+    </update>
+
+    <update id="updateOpportunityViewPermissionCreatedByToNull" parameterType="long">
+        -- 삭제 대상 사용자가 보안 열람 권한 부여자로 참조된 값을 비운다.
+        UPDATE opportunity_view_permissions
+        SET created_by = NULL
+        WHERE created_by = #{userId}
+    </update>
+
+    <delete id="deleteOpportunityViewPermissionListByUserId" parameterType="long">
+        -- 삭제 대상 사용자에게 부여된 보안 프로젝트 열람 권한을 삭제한다.
+        DELETE FROM opportunity_view_permissions
+        WHERE user_id = #{userId}
+    </delete>
+
+    <update id="updateOpportunityExecutiveCommentUserReferencesToNull" parameterType="long">
+        -- 삭제 대상 사용자가 임원 코멘트 작성자로 참조된 값을 비운다.
+        UPDATE opportunity_executive_comments
+        SET created_by = NULL
+        WHERE created_by = #{userId}
+    </update>
+
+    <update id="updateCustomerUserReferencesToNull" parameterType="long">
+        -- 삭제 대상 사용자가 고객사 작성자 또는 수정자로 참조된 값을 비운다.
+        UPDATE customers
+        SET
+            created_by = CASE WHEN created_by = #{userId} THEN NULL ELSE created_by END,
+            updated_by = CASE WHEN updated_by = #{userId} THEN NULL ELSE updated_by END
+        WHERE created_by = #{userId}
+           OR updated_by = #{userId}
+    </update>
+
+    <update id="updateAnnualRevenueTargetUserReferencesToNull" parameterType="long">
+        -- 삭제 대상 사용자가 연간 매출 목표 작성자 또는 수정자로 참조된 값을 비운다.
+        UPDATE annual_revenue_targets
+        SET
+            created_by = CASE WHEN created_by = #{userId} THEN NULL ELSE created_by END,
+            updated_by = CASE WHEN updated_by = #{userId} THEN NULL ELSE updated_by END
+        WHERE created_by = #{userId}
+           OR updated_by = #{userId}
+    </update>
+
     <delete id="deleteUserRoleList" parameterType="long">
         -- 사용자에게 부여된 기존 역할을 삭제한다.
         DELETE FROM user_roles
@@ -359,4 +432,10 @@
             can_read = EXCLUDED.can_read,
             can_write = EXCLUDED.can_write
     </insert>
+
+    <delete id="deleteManagedUser" parameterType="long">
+        -- 회원/권한 관리에서 사용자를 실제 삭제한다.
+        DELETE FROM users
+        WHERE user_id = #{userId}
+    </delete>
 </mapper>
