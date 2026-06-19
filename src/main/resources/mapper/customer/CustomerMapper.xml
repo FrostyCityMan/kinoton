@@ -144,12 +144,9 @@
         WHERE customer_id = #{customerId}
     </update>
 
-    <update id="deleteCustomer" parameterType="long">
-        -- 고객사를 비활성화한다.
-        UPDATE customers
-        SET
-            is_active = FALSE,
-            updated_at = NOW()
+    <delete id="deleteCustomer" parameterType="long">
+        -- 영업 사이트에서 사용하지 않는 고객사를 삭제한다.
+        DELETE FROM customers
         WHERE customer_id = #{customerId}
-    </update>
+    </delete>
 </mapper>

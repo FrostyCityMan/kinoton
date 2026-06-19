@@ -100,7 +100,7 @@ public class CustomerServiceImpl implements CustomerService {
     public void deleteCustomer(Long customerId, Long updatedBy) {
         CustomerListItemDto before = selectCustomerDetails(customerId);
         if (before.getOpportunityCount() > 0) {
-            throw new BusinessException("영업 사이트에서 사용 중인 고객사는 삭제할 수 없습니다. 비활성 상태로 수정하세요.");
+            throw new BusinessException("영업 사이트에서 사용 중인 고객사는 삭제할 수 없습니다. 연결된 영업 사이트를 먼저 수정하거나 삭제하세요.");
         }
         customerDao.deleteCustomer(customerId);
         auditLogService.insertAuditLog(updatedBy, "CUSTOMER", customerId, "DELETE_CUSTOMER", selectAuditData(before), null);
