@@ -821,6 +821,16 @@ a {
     min-height: 46px;
 }
 
+.password-change-logout-form {
+    display: grid;
+    margin-top: 12px;
+}
+
+.password-change-logout-button {
+    min-height: 46px;
+    width: 100%;
+}
+
 .login-links {
     color: var(--muted);
     display: flex;

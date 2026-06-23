@@ -125,7 +125,7 @@
                     <td th:text="${#strings.isEmpty(user.departmentPermissionSummary) ? '-' : user.departmentPermissionSummary}">DE 사업본부</td>
                     <td>
                         <span class="stage-chip" th:text="${user.active ? '활성' : '비활성'}">활성</span>
-                        <span class="stage-chip" th:if="${user.passwordResetRequired}">비밀번호 변경</span>
+                        <span class="stage-chip" th:if="${user.passwordResetRequired}">비밀번호 변경 필요</span>
                     </td>
                     <td>
                         <div class="table-actions">

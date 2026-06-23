@@ -163,6 +163,9 @@ public class AuditLogListItemDto {
         if ("DELETE_USER".equals(action)) {
             return "사용자 삭제";
         }
+        if ("CHANGE_PASSWORD".equals(action)) {
+            return "비밀번호 변경";
+        }
         if ("INSERT_DEPARTMENT".equals(action)) {
             return "사업본부 등록";
         }
