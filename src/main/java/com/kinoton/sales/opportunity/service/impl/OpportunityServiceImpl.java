@@ -21,10 +21,14 @@ import com.kinoton.sales.opportunity.dto.OpportunityProgressCreateCommandDto;
 import com.kinoton.sales.opportunity.dto.OpportunityProgressCreateRequest;
 import com.kinoton.sales.opportunity.dto.OpportunityProgressCreateResponse;
 import com.kinoton.sales.opportunity.dto.OpportunityStageUpdateCommandDto;
+import com.kinoton.sales.opportunity.dto.OpportunityStatusUpdateCommandDto;
+import com.kinoton.sales.opportunity.dto.OpportunityStatusUpdateRequest;
+import com.kinoton.sales.opportunity.dto.OpportunityStatusUpdateResponse;
 import com.kinoton.sales.opportunity.dto.OpportunityUpdateRequest;
 import com.kinoton.sales.opportunity.dto.OpportunityViewPermissionCommandDto;
 import com.kinoton.sales.opportunity.dto.ProbabilityStageSimpleDto;
 import com.kinoton.sales.opportunity.service.OpportunityService;
+import com.kinoton.sales.opportunity.vo.OpportunityStatus;
 import com.kinoton.sales.security.KinotonUserDetails;
 import com.kinoton.sales.security.DepartmentAccessService;
 import com.kinoton.sales.security.dto.DepartmentAccessScope;
@@ -49,7 +53,8 @@ import java.util.Set;
 @Service
 public class OpportunityServiceImpl implements OpportunityService {
 
-    private static final String DEFAULT_STATUS = "IN_PROGRESS";
+    private static final String DEFAULT_STATUS = OpportunityStatus.IN_PROGRESS.getCode();
+    private static final int WON_MINIMUM_PROBABILITY = 90;
     private static final String GENERAL_SECURITY_LEVEL = "GENERAL";
     private static final String CONFIDENTIAL_SECURITY_LEVEL = "CONFIDENTIAL";
     private static final String ADMIN_ROLE = "ADMIN";
@@ -235,6 +240,83 @@ public class OpportunityServiceImpl implements OpportunityService {
             "UPDATE_OPPORTUNITY",
             beforeData,
             selectOpportunityAuditData(request, command, probabilityStage, null)
+        );
+    }
+
+    @Override
+    @Transactional
+    public OpportunityStatusUpdateResponse updateOpportunityStatus(
+        Long opportunityId,
+        OpportunityStatusUpdateRequest request,
+        Long updatedBy,
+        Authentication authentication
+    ) {
+        OpportunityDetailsDto details = selectExistingOpportunityDetailsByAccess(opportunityId, authentication);
+        departmentAccessService.validateWritableDepartment(details.getDepartmentCode(), authentication);
+
+        OpportunityStatus currentStatus = selectOpportunityStatus(
+            details.getStatus(),
+            "현재 영업 상태가 유효하지 않습니다."
+        );
+        OpportunityStatus requestedStatus = selectOpportunityStatus(
+            request.getStatus(),
+            "변경할 영업 상태가 유효하지 않습니다."
+        );
+        if (currentStatus == requestedStatus) {
+            throw new BusinessException("현재 상태와 다른 영업 상태를 선택하세요.");
+        }
+
+        String reason = normalizeNullableText(request.getReason());
+        if (requestedStatus.isReasonRequired() && !StringUtils.hasText(reason)) {
+            throw new BusinessException(requestedStatus.getLabel() + " 상태로 변경하려면 변경 사유를 입력하세요.");
+        }
+        if (requestedStatus == OpportunityStatus.WON
+            && (details.getProbability() == null || details.getProbability() < WON_MINIMUM_PROBABILITY)) {
+            throw new BusinessException(
+                "수주완료 상태는 현재 수주확률이 90% 이상일 때만 선택할 수 있습니다. "
+                    + "먼저 수주확률을 90% 이상 단계로 변경하세요."
+            );
+        }
+        if (details.getProbabilityStageId() == null) {
+            throw new BusinessException("현재 수주확률 단계를 확인할 수 없습니다.");
+        }
+
+        OpportunityStatusUpdateCommandDto statusCommand = new OpportunityStatusUpdateCommandDto();
+        statusCommand.setOpportunityId(opportunityId);
+        statusCommand.setStatus(requestedStatus.getCode());
+        statusCommand.setUpdatedBy(updatedBy);
+        int updatedCount = opportunityDao.updateOpportunityStatus(statusCommand);
+        if (updatedCount != 1) {
+            throw new BusinessException("영업 상태를 변경하지 못했습니다. 다시 시도하세요.");
+        }
+
+        OpportunityProgressCreateCommandDto progressCommand = new OpportunityProgressCreateCommandDto();
+        progressCommand.setOpportunityId(opportunityId);
+        progressCommand.setProgressDate(LocalDate.now());
+        progressCommand.setProbabilityStageId(details.getProbabilityStageId());
+        progressCommand.setContent(selectStatusProgressContent(currentStatus, requestedStatus, reason));
+        progressCommand.setCreatedBy(updatedBy);
+        opportunityDao.insertOpportunityProgress(progressCommand);
+
+        auditLogService.insertAuditLog(
+            updatedBy,
+            "OPPORTUNITY",
+            opportunityId,
+            "UPDATE_OPPORTUNITY_STATUS",
+            selectOpportunityStatusAuditData(currentStatus, details.getProbability(), null, null),
+            selectOpportunityStatusAuditData(
+                requestedStatus,
+                details.getProbability(),
+                reason,
+                progressCommand.getOpportunityProgressId()
+            )
+        );
+
+        return new OpportunityStatusUpdateResponse(
+            opportunityId,
+            requestedStatus.getCode(),
+            requestedStatus.getLabel(),
+            progressCommand.getOpportunityProgressId()
         );
     }
 
@@ -500,6 +582,23 @@ public class OpportunityServiceImpl implements OpportunityService {
         throw new BusinessException("보안 구분이 유효하지 않습니다.");
     }
 
+    private OpportunityStatus selectOpportunityStatus(String status, String errorMessage) {
+        return OpportunityStatus.selectByCode(status)
+            .orElseThrow(() -> new BusinessException(errorMessage));
+    }
+
+    private String selectStatusProgressContent(
+        OpportunityStatus currentStatus,
+        OpportunityStatus requestedStatus,
+        String reason
+    ) {
+        String content = "영업 상태 변경: " + currentStatus.getLabel() + " -> " + requestedStatus.getLabel();
+        if (!StringUtils.hasText(reason)) {
+            return content;
+        }
+        return content + " / 사유: " + reason;
+    }
+
     private void insertOpportunityViewPermissionList(
         OpportunityCreateCommandDto command,
         List<Long> requestedUserIds,
@@ -605,6 +704,25 @@ public class OpportunityServiceImpl implements OpportunityService {
         data.put("probability", details.getProbability());
         data.put("probabilityStageName", details.getProbabilityStageName());
         data.put("status", details.getStatus());
+        return data;
+    }
+
+    private Map<String, Object> selectOpportunityStatusAuditData(
+        OpportunityStatus status,
+        Integer probability,
+        String reason,
+        Long opportunityProgressId
+    ) {
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("status", status.getCode());
+        data.put("statusName", status.getLabel());
+        data.put("probability", probability);
+        if (StringUtils.hasText(reason)) {
+            data.put("reason", reason);
+        }
+        if (opportunityProgressId != null) {
+            data.put("opportunityProgressId", opportunityProgressId);
+        }
         return data;
     }
 

@@ -72,10 +72,10 @@
                     <span>상태</span>
                     <select name="status">
                         <option value="">전체</option>
-                        <option value="IN_PROGRESS" th:selected="${condition.status == 'IN_PROGRESS'}">진행중</option>
-                        <option value="WON" th:selected="${condition.status == 'WON'}">수주완료</option>
-                        <option value="HOLD" th:selected="${condition.status == 'HOLD'}">보류</option>
-                        <option value="LOST" th:selected="${condition.status == 'LOST'}">실주</option>
+                        <option th:each="statusOption : ${statusOptions}"
+                                th:value="${statusOption.code}"
+                                th:text="${statusOption.label}"
+                                th:selected="${condition.status == statusOption.code}">진행중</option>
                     </select>
                 </label>
                 <button type="submit">조회</button>
@@ -175,12 +175,10 @@
                     <td th:text="${item.expectedOrderPeriod}">2026 4Q</td>
                     <td th:text="${item.expectedDeliveryPeriod}">2027 2Q</td>
                     <td th:text="${item.projectAmount} + '억원'">0억원</td>
-                    <td th:switch="${item.status}">
-                        <span th:case="'IN_PROGRESS'">진행중</span>
-                        <span th:case="'WON'">수주완료</span>
-                        <span th:case="'HOLD'">보류</span>
-                        <span th:case="'LOST'">실주</span>
-                        <span th:case="*" th:text="${item.status}">상태</span>
+                    <td>
+                        <span class="status-badge"
+                              th:classappend="${item.statusCssClass}"
+                              th:text="${item.statusName}">진행중</span>
                     </td>
                     <td>
                         <span class="stage-chip" th:text="${item.probability + '% ' + item.probabilityStageName}">10% 영업 시작</span>

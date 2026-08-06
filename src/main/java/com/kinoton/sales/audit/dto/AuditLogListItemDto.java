@@ -154,6 +154,9 @@ public class AuditLogListItemDto {
         if ("UPDATE_OPPORTUNITY".equals(action)) {
             return "영업 사이트 수정";
         }
+        if ("UPDATE_OPPORTUNITY_STATUS".equals(action)) {
+            return "영업 상태 변경";
+        }
         if ("DELETE_OPPORTUNITY".equals(action)) {
             return "영업 사이트 삭제";
         }

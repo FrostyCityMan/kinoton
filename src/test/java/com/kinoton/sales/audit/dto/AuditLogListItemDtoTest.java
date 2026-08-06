@@ -24,4 +24,12 @@ class AuditLogListItemDtoTest {
 
         assertThat(auditLog.getCreatedAtKst()).isNull();
     }
+
+    @Test
+    void actionNameShouldTranslateOpportunityStatusUpdate() {
+        AuditLogListItemDto auditLog = new AuditLogListItemDto();
+        auditLog.setAction("UPDATE_OPPORTUNITY_STATUS");
+
+        assertThat(auditLog.getActionName()).isEqualTo("영업 상태 변경");
+    }
 }

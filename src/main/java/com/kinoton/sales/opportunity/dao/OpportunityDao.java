@@ -11,6 +11,7 @@ import com.kinoton.sales.opportunity.dto.OpportunityProgressCreateCommandDto;
 import com.kinoton.sales.opportunity.dto.OpportunityProgressItemDto;
 import com.kinoton.sales.opportunity.dto.OpportunityProgressLookupCondition;
 import com.kinoton.sales.opportunity.dto.OpportunityStageUpdateCommandDto;
+import com.kinoton.sales.opportunity.dto.OpportunityStatusUpdateCommandDto;
 import com.kinoton.sales.opportunity.dto.OpportunityViewPermissionCommandDto;
 import com.kinoton.sales.opportunity.dto.ProbabilityStageSimpleDto;
 import org.apache.ibatis.annotations.Mapper;
@@ -37,6 +38,8 @@ public interface OpportunityDao {
     void insertOpportunityExecutiveComment(OpportunityExecutiveCommentCreateCommandDto command);
 
     void updateOpportunityProbabilityStage(OpportunityStageUpdateCommandDto command);
+
+    int updateOpportunityStatus(OpportunityStatusUpdateCommandDto command);
 
     void updateOpportunity(OpportunityCreateCommandDto command);
 

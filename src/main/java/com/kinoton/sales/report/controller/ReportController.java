@@ -1,6 +1,7 @@
 package com.kinoton.sales.report.controller;
 
 import com.kinoton.sales.common.response.ApiResponse;
+import com.kinoton.sales.opportunity.vo.OpportunityStatus;
 import com.kinoton.sales.report.dto.OpportunityReportResponse;
 import com.kinoton.sales.report.dto.ReportFileResponse;
 import com.kinoton.sales.report.dto.ReportSearchCondition;
@@ -46,6 +47,7 @@ public class ReportController {
         model.addAttribute("departments", report.departments());
         model.addAttribute("years", businessYearService.selectBusinessYearOptionList());
         model.addAttribute("months", selectMonths());
+        model.addAttribute("statusOptions", OpportunityStatus.values());
         return "report/opportunity";
     }
 

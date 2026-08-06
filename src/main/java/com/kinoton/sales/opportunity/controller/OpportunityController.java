@@ -13,19 +13,24 @@ import com.kinoton.sales.opportunity.dto.OpportunityListItemDto;
 import com.kinoton.sales.opportunity.dto.OpportunityListSearchCondition;
 import com.kinoton.sales.opportunity.dto.OpportunityProgressCreateRequest;
 import com.kinoton.sales.opportunity.dto.OpportunityProgressCreateResponse;
+import com.kinoton.sales.opportunity.dto.OpportunityStatusUpdateRequest;
+import com.kinoton.sales.opportunity.dto.OpportunityStatusUpdateResponse;
 import com.kinoton.sales.opportunity.dto.OpportunityUpdateRequest;
 import com.kinoton.sales.opportunity.service.OpportunityService;
+import com.kinoton.sales.opportunity.vo.OpportunityStatus;
 import com.kinoton.sales.probability.service.ProbabilityStageService;
 import com.kinoton.sales.security.KinotonUserDetails;
 import com.kinoton.sales.user.service.UserManagementService;
 import com.kinoton.sales.year.service.BusinessYearService;
 import jakarta.validation.Valid;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -70,6 +75,7 @@ public class OpportunityController {
         model.addAttribute("condition", condition);
         model.addAttribute("opportunities", opportunityService.selectOpportunityList(condition, authentication));
         model.addAttribute("years", businessYearService.selectBusinessYearOptionList());
+        model.addAttribute("statusOptions", OpportunityStatus.values());
         return "opportunity/list";
     }
 
@@ -197,7 +203,40 @@ public class OpportunityController {
         model.addAttribute("attachments", attachmentService.selectAttachmentList(opportunityId, authentication));
         model.addAttribute("progressRequest", new OpportunityProgressCreateRequest());
         model.addAttribute("commentRequest", new OpportunityExecutiveCommentCreateRequest());
+        model.addAttribute("statusOptions", OpportunityStatus.values());
+        if (!model.containsAttribute("statusRequest")) {
+            model.addAttribute("statusRequest", new OpportunityStatusUpdateRequest());
+        }
         return "opportunity/detail";
+    }
+
+    @PostMapping("/opportunities/{opportunityId}/status")
+    public String updateOpportunityStatusPage(
+        @PathVariable Long opportunityId,
+        @Valid @ModelAttribute("statusRequest") OpportunityStatusUpdateRequest request,
+        BindingResult bindingResult,
+        Authentication authentication,
+        RedirectAttributes redirectAttributes
+    ) {
+        if (bindingResult.hasErrors()) {
+            redirectAttributes.addFlashAttribute("statusRequest", request);
+            redirectAttributes.addFlashAttribute("errorMessage", selectFirstValidationMessage(bindingResult));
+            return "redirect:/opportunities/" + opportunityId;
+        }
+
+        try {
+            opportunityService.updateOpportunityStatus(
+                opportunityId,
+                request,
+                selectAuthenticatedUserId(authentication),
+                authentication
+            );
+            redirectAttributes.addFlashAttribute("message", "영업 상태가 변경되었습니다.");
+        } catch (BusinessException | AccessDeniedException exception) {
+            redirectAttributes.addFlashAttribute("statusRequest", request);
+            redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+        }
+        return "redirect:/opportunities/" + opportunityId;
     }
 
     @GetMapping("/api/v1/opportunities/{opportunityId}")
@@ -207,6 +246,24 @@ public class OpportunityController {
         Authentication authentication
     ) {
         return ApiResponse.success(opportunityService.selectOpportunityDetails(opportunityId, authentication));
+    }
+
+    @PatchMapping("/api/v1/opportunities/{opportunityId}/status")
+    @ResponseBody
+    public ApiResponse<OpportunityStatusUpdateResponse> updateOpportunityStatus(
+        @PathVariable Long opportunityId,
+        @Valid @RequestBody OpportunityStatusUpdateRequest request,
+        Authentication authentication
+    ) {
+        return ApiResponse.success(
+            opportunityService.updateOpportunityStatus(
+                opportunityId,
+                request,
+                selectAuthenticatedUserId(authentication),
+                authentication
+            ),
+            "영업 상태가 변경되었습니다."
+        );
     }
 
     @PostMapping("/api/v1/opportunities")
@@ -286,6 +343,13 @@ public class OpportunityController {
             return userDetails.selectUserId();
         }
         return null;
+    }
+
+    private String selectFirstValidationMessage(BindingResult bindingResult) {
+        return bindingResult.getAllErrors().stream()
+            .findFirst()
+            .map(error -> error.getDefaultMessage() == null ? "입력 값을 확인하세요." : error.getDefaultMessage())
+            .orElse("입력 값을 확인하세요.");
     }
 
     private OpportunityUpdateRequest selectUpdateRequest(OpportunityDetailsResponse response) {

@@ -1,5 +1,7 @@
 package com.kinoton.sales.opportunity.dto;
 
+import com.kinoton.sales.opportunity.vo.OpportunityStatus;
+
 import java.math.BigDecimal;
 
 public class OpportunityDetailsDto {
@@ -23,6 +25,7 @@ public class OpportunityDetailsDto {
     private Integer expectedDeliveryQuarter;
     private BigDecimal projectAmount;
     private String status;
+    private Long probabilityStageId;
     private Integer probability;
     private String probabilityStageName;
 
@@ -184,6 +187,22 @@ public class OpportunityDetailsDto {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getStatusName() {
+        return OpportunityStatus.selectLabel(status);
+    }
+
+    public String getStatusCssClass() {
+        return OpportunityStatus.selectCssClass(status);
+    }
+
+    public Long getProbabilityStageId() {
+        return probabilityStageId;
+    }
+
+    public void setProbabilityStageId(Long probabilityStageId) {
+        this.probabilityStageId = probabilityStageId;
     }
 
     public Integer getProbability() {

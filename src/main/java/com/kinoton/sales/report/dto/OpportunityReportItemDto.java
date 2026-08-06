@@ -1,5 +1,7 @@
 package com.kinoton.sales.report.dto;
 
+import com.kinoton.sales.opportunity.vo.OpportunityStatus;
+
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
@@ -114,6 +116,14 @@ public class OpportunityReportItemDto {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getStatusName() {
+        return OpportunityStatus.selectLabel(status);
+    }
+
+    public String getStatusCssClass() {
+        return OpportunityStatus.selectCssClass(status);
     }
 
     public Integer getProbability() {

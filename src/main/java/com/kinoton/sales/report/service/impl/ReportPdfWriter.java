@@ -131,7 +131,7 @@ public class ReportPdfWriter {
                 nullToBlank(item.getExpectedOrderPeriod()),
                 nullToBlank(item.getExpectedDeliveryPeriod()),
                 String.valueOf(item.getProjectAmount()),
-                selectStatusName(item.getStatus()),
+                item.getStatusName(),
                 item.getProbability() + "% " + nullToBlank(item.getProbabilityStageName()),
                 item.getRevenueCategory()
             };
@@ -216,22 +216,6 @@ public class ReportPdfWriter {
 
     private void writeAscii(ByteArrayOutputStream outputStream, String value) throws IOException {
         outputStream.write(value.getBytes(StandardCharsets.ISO_8859_1));
-    }
-
-    private String selectStatusName(String status) {
-        if ("IN_PROGRESS".equals(status)) {
-            return "진행중";
-        }
-        if ("WON".equals(status)) {
-            return "수주완료";
-        }
-        if ("HOLD".equals(status)) {
-            return "보류";
-        }
-        if ("LOST".equals(status)) {
-            return "실주";
-        }
-        return nullToBlank(status);
     }
 
     private String nullToBlank(String value) {

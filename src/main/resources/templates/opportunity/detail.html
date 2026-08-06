@@ -54,13 +54,54 @@
                 <span>예상구축시기</span>
                 <strong th:text="${details.expectedDeliveryPeriod}">2027 2Q</strong>
             </div>
-            <div>
-                <span>영업 상태</span>
-                <strong th:text="${details.status}">IN_PROGRESS</strong>
-            </div>
         </section>
 
+        <p th:if="${errorMessage}" class="form-error" th:text="${errorMessage}">입력 값을 확인하세요.</p>
         <p th:if="${message}" class="form-message" th:text="${message}">저장되었습니다.</p>
+
+        <section class="status-update-panel" aria-labelledby="status-update-title">
+            <div class="status-update-summary">
+                <span>현재 영업 상태</span>
+                <strong class="status-badge"
+                        th:classappend="${details.statusCssClass}"
+                        th:text="${details.statusName}">진행중</strong>
+                <h2 id="status-update-title">영업 상태 변경</h2>
+                <p>상태 변경 내용은 영업 진행 기록과 감사 로그에 함께 저장됩니다.</p>
+            </div>
+
+            <form th:action="@{/opportunities/{id}/status(id=${details.opportunityId})}"
+                  th:object="${statusRequest}"
+                  method="post"
+                  class="status-update-form"
+                  data-confirm-message="영업 상태를 변경하시겠습니까? 변경 내용은 영업 진행 기록과 감사 로그에 남습니다.">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                <label class="status-update-field" for="opportunityStatus">
+                    <span>변경 상태</span>
+                    <select id="opportunityStatus" th:field="*{status}" required aria-describedby="status-update-help">
+                        <option value="">변경할 상태 선택</option>
+                        <option th:each="statusOption : ${statusOptions}"
+                                th:value="${statusOption.code}"
+                                th:text="${statusOption.label + (statusOption.code == details.status ? ' (현재)' : '')}"
+                                th:disabled="${statusOption.code == details.status}">
+                            진행중
+                        </option>
+                    </select>
+                </label>
+
+                <label class="status-update-field status-reason-field" for="statusReason">
+                    <span>변경 사유 <small>보류·실주 선택 시 필수</small></span>
+                    <textarea id="statusReason"
+                              th:field="*{reason}"
+                              rows="2"
+                              maxlength="500"
+                              placeholder="상태 변경 사유를 입력하세요."></textarea>
+                </label>
+
+                <button type="submit" class="primary-action">영업 상태 변경</button>
+                <p id="status-update-help" class="helper-text">수주완료는 현재 수주확률이 90% 이상일 때 선택할 수 있습니다.</p>
+            </form>
+        </section>
 
         <section class="work-grid">
             <article class="timeline-panel">

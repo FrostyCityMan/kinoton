@@ -47,6 +47,7 @@
         <result property="expectedDeliveryQuarter" column="expected_delivery_quarter"/>
         <result property="projectAmount" column="project_amount"/>
         <result property="status" column="status"/>
+        <result property="probabilityStageId" column="probability_stage_id"/>
         <result property="probability" column="probability"/>
         <result property="probabilityStageName" column="probability_stage_name"/>
     </resultMap>
@@ -255,6 +256,17 @@
         WHERE opportunity_id = #{opportunityId}
     </update>
 
+    <update id="updateOpportunityStatus"
+            parameterType="com.kinoton.sales.opportunity.dto.OpportunityStatusUpdateCommandDto">
+        -- 영업 사이트의 영업 상태를 변경한다.
+        UPDATE opportunities
+        SET
+            status = #{status},
+            updated_by = #{updatedBy},
+            updated_at = NOW()
+        WHERE opportunity_id = #{opportunityId}
+    </update>
+
     <update id="updateOpportunity"
             parameterType="com.kinoton.sales.opportunity.dto.OpportunityCreateCommandDto">
         -- 영업 사이트 기본 정보를 수정한다.
@@ -373,6 +385,7 @@
             o.expected_delivery_quarter,
             o.project_amount,
             o.status,
+            o.probability_stage_id,
             ps.probability,
             ps.name AS probability_stage_name
         FROM opportunities o

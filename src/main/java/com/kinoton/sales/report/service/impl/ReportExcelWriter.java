@@ -101,7 +101,7 @@ public class ReportExcelWriter {
             writeCell(row, 4, item.getExpectedOrderPeriod(), null);
             writeCell(row, 5, item.getExpectedDeliveryPeriod(), null);
             writeCell(row, 6, item.getProjectAmount(), null);
-            writeCell(row, 7, selectStatusName(item.getStatus()), null);
+            writeCell(row, 7, item.getStatusName(), null);
             writeCell(row, 8, item.getProbability() + "% " + item.getProbabilityStageName(), null);
             writeCell(row, 9, item.getRevenueCategory(), null);
         }
@@ -142,19 +142,4 @@ public class ReportExcelWriter {
         return style;
     }
 
-    String selectStatusName(String status) {
-        if ("IN_PROGRESS".equals(status)) {
-            return "진행중";
-        }
-        if ("WON".equals(status)) {
-            return "수주완료";
-        }
-        if ("HOLD".equals(status)) {
-            return "보류";
-        }
-        if ("LOST".equals(status)) {
-            return "실주";
-        }
-        return status == null ? "" : status;
-    }
 }

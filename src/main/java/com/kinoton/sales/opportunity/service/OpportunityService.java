@@ -9,6 +9,8 @@ import com.kinoton.sales.opportunity.dto.OpportunityListItemDto;
 import com.kinoton.sales.opportunity.dto.OpportunityListSearchCondition;
 import com.kinoton.sales.opportunity.dto.OpportunityProgressCreateRequest;
 import com.kinoton.sales.opportunity.dto.OpportunityProgressCreateResponse;
+import com.kinoton.sales.opportunity.dto.OpportunityStatusUpdateRequest;
+import com.kinoton.sales.opportunity.dto.OpportunityStatusUpdateResponse;
 import com.kinoton.sales.opportunity.dto.OpportunityUpdateRequest;
 import org.springframework.security.core.Authentication;
 
@@ -19,6 +21,13 @@ public interface OpportunityService {
     OpportunityCreateResponse insertOpportunity(OpportunityCreateRequest request, Long createdBy, Authentication authentication);
 
     void updateOpportunity(Long opportunityId, OpportunityUpdateRequest request, Long updatedBy, Authentication authentication);
+
+    OpportunityStatusUpdateResponse updateOpportunityStatus(
+        Long opportunityId,
+        OpportunityStatusUpdateRequest request,
+        Long updatedBy,
+        Authentication authentication
+    );
 
     void deleteOpportunity(Long opportunityId, Long deletedBy, Authentication authentication);
 
